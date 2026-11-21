@@ -82,4 +82,122 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
         XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 60.0)
     }
+
+    func testLenientDecodingWithAppleFMStartOfTurnAndMultipleItems() {
+        let rawAppleFMOutput = """
+        <start_of_turn>model
+        ```json
+        {
+          "status": "ready",
+          "message": "2kg Potato and 1kg Tomato confirmed and ready to bill.",
+          "items": [
+            {
+              "itemName": "Potato",
+              "quantity": 2.0,
+              "unit": "kg",
+              "unitPrice": 30.0
+            },
+            {
+              "itemName": "Tomato",
+              "quantity": 1.0,
+              "unit": "kg",
+              "unitPrice": 40.0
+            }
+          ]
+        }
+        ```
+        """
+
+        let catalog = [
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
+            Item(name: "Tomato", unitType: .kg, pricePerUnit: 40.0)
+        ]
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: rawAppleFMOutput,
+            catalog: catalog,
+            settings: .defaultSettings
+        )
+
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 2)
+        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 100.0) // (2*30) + (1*40) = 100
+        XCTAssertEqual(parsedMessage.billSummary?.totalWeightKg, 3.0)
+    }
+
+    func testTopLevelArrayPayloadAndAlternateKeyNames() {
+        let arrayOutput = """
+        ```json
+        [
+          {
+            "name": "Potato",
+            "quantity": "2kg",
+            "price": 30
+          },
+          {
+            "item": "Mustard Oil",
+            "qty": "500ml",
+            "rate": 160
+          }
+        ]
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: arrayOutput,
+            catalog: sampleCatalog,
+            settings: .defaultSettings
+        )
+
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 2)
+        let potato = parsedMessage.parsedItems?.first { $0.itemName == "Potato" }
+        XCTAssertEqual(potato?.quantity, 2.0)
+        XCTAssertEqual(potato?.unit, "kg")
+
+        let oil = parsedMessage.parsedItems?.first { $0.itemName == "Mustard Oil" }
+        XCTAssertEqual(oil?.quantity, 500.0)
+        XCTAssertEqual(oil?.unit, "ml")
+    }
+
+    func testFallbackCatalogExtractionFromUnstructuredText() {
+        let plainTextOutput = "Sure! I have added 2kg Potato to your cart."
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: plainTextOutput,
+            catalog: sampleCatalog,
+            settings: .defaultSettings
+        )
+
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
+        XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Potato")
+        XCTAssertEqual(parsedMessage.parsedItems?.first?.quantity, 2.0)
+        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 60.0)
+    }
+
+    func testLiveDaemonIntegrationIfOnline() async throws {
+        guard AppleFMServerManager.shared.isDaemonOnline() else { return }
+        let catalog = [
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
+            Item(name: "Tomato", unitType: .kg, pricePerUnit: 40.0)
+        ]
+        let response = try await AppleFMServerManager.shared.queryDaemon(
+            userInput: "2kg aloo aur 1kg tamatar",
+            conversationHistory: [],
+            catalog: catalog,
+            currencySymbol: "₹"
+        )
+        let parsed = LLMResponseParser.parse(content: response, catalog: catalog, settings: .defaultSettings)
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertNotNil(parsed.parsedItems)
+        XCTAssertGreaterThanOrEqual(parsed.parsedItems?.count ?? 0, 1)
+        XCTAssertNotNil(parsed.billSummary)
+        let bill = BillCalculator.mergeIntoBill(
+            existingBill: nil,
+            newParsedItems: parsed.parsedItems ?? [],
+            catalog: catalog
+        )
+        XCTAssertFalse(bill.items.isEmpty)
+    }
 }

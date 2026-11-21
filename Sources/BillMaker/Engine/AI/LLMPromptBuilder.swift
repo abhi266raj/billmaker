@@ -24,7 +24,7 @@ public struct LLMPromptBuilder {
 
         ```json
         {
-          "status": "ready" | "needs_clarification",
+          "status": "ready",
           "message": "Concise 1-sentence confirmation",
           "thought": "Brief 1-sentence reasoning",
           "items": [
@@ -37,6 +37,7 @@ public struct LLMPromptBuilder {
           ]
         }
         ```
+        (Use status "needs_clarification" ONLY if the item does not exist anywhere in the catalog).
         """
     }
 

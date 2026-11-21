@@ -91,9 +91,10 @@ public final class AppleFMServerManager: @unchecked Sendable {
             ["role": "system", "content": systemPrompt]
         ]
 
-        // Append recent conversation context so session continues
+        // Append recent conversation context without repeating current user input
         let recentHistory = conversationHistory.suffix(4)
         for msg in recentHistory {
+            if msg.role == .user && msg.text == userInput { continue }
             let role = (msg.role == .user) ? "user" : "assistant"
             messages.append(["role": role, "content": msg.text])
         }
@@ -116,11 +117,17 @@ public final class AppleFMServerManager: @unchecked Sendable {
                   let choices = json["choices"] as? [[String: Any]],
                   let first = choices.first,
                   let msg = first["message"] as? [String: Any],
-                  let content = msg["content"] as? String else {
+                  let rawContent = msg["content"] as? String else {
                 throw NSError(domain: "AppleFMServerManager", code: -3, userInfo: [NSLocalizedDescriptionKey: "Unexpected response format from daemon."])
             }
 
-            return content
+            let cleanContent = rawContent
+                .replacingOccurrences(of: "<start_of_turn>model", with: "")
+                .replacingOccurrences(of: "<start_of_turn>", with: "")
+                .replacingOccurrences(of: "<end_of_turn>", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            return cleanContent
         } catch {
             // Fallback to in-app embedded server if daemon times out or fails
             return try await AppleFMBackgroundServer.shared.processDirect(
