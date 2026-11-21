@@ -155,7 +155,9 @@ public struct AgentHarnessView: View {
             Image(systemName: "bolt.fill")
                 .font(.caption2)
                 .foregroundColor(.green)
-            Text("Apple FM Server: Prewarmed")
+            Text(appState.settings.executionMode == .backgroundDaemon
+                 ? "Apple FM Daemon (1976)"
+                 : "Apple FM In-App (9876)")
                 .font(.caption2.weight(.medium))
         }
         .padding(.horizontal, 7)
@@ -170,6 +172,7 @@ public struct AgentHarnessView: View {
         } else {
             speechService.startRecording(localeIdentifier: appState.settings.speechLocaleIdentifier) { transcribed in
                 inputText = transcribed
+                appState.prewarmPrefix(transcribed)
             }
         }
     }

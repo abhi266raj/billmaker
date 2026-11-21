@@ -52,6 +52,11 @@ public final class AppState: ObservableObject {
         agentEngine.prewarm(catalog: catalog, settings: settings)
     }
 
+    /// Prewarms the continuous session with typing or voice prefixes as they arrive.
+    public func prewarmPrefix(_ prefix: String) {
+        AppleFMBackgroundServer.shared.prewarmPrefix(prefix)
+    }
+
     private func setupWelcomeMessage() {
         if messages.isEmpty {
             messages.append(

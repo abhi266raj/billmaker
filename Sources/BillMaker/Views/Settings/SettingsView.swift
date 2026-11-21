@@ -9,41 +9,35 @@ public struct SettingsView: View {
 
     public var body: some View {
         Form {
-            Section(header: Text("AI Engine")) {
-                HStack(spacing: 14) {
-                    Image(systemName: "apple.intelligence")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 34, height: 34)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .purple, .pink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Apple Foundation Models (Background Server)")
-                            .font(.headline)
-                        Text("Dedicated prewarmed background server on port 9876. Holds continuous model sessions in memory to provide ultra-fast, low-latency parsing.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+            Section(header: Text("Apple Foundation Models Engine")) {
+                Picker("Execution Mode", selection: $appState.settings.executionMode) {
+                    ForEach(AppleFMExecutionMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
                     }
                 }
-                .padding(.vertical, 4)
+                .pickerStyle(.radioGroup)
+                .onChange(of: appState.settings.executionMode) { _ in
+                    appState.saveSettings()
+                }
+
+                Text(appState.settings.executionMode.shortDescription)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 4)
 
                 HStack {
                     HStack(spacing: 6) {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 8, height: 8)
-                        Text("Server Status: 127.0.0.1:9876 (Prewarmed & Continuous Session Active)")
+                        Text(appState.settings.executionMode == .backgroundDaemon
+                             ? "Daemon Active: 127.0.0.1:1976 (Apple Neural Engine Pinned)"
+                             : "In-App Active: Port 9876 (Continuous Session Prewarmed)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     Spacer()
-                    Button("Re-warm Session") {
+                    Button("Re-warm Engine") {
                         appState.prewarmEngine()
                     }
                     .font(.caption)
@@ -108,6 +102,6 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 500, minHeight: 400)
+        .frame(minWidth: 520, minHeight: 440)
     }
 }

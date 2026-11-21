@@ -1,17 +1,18 @@
 import Foundation
 
-/// Primary AI Agent Engine powered by the persistent, prewarmed `AppleFMBackgroundServer`.
-///
-/// Features:
-/// - Continues the `LanguageModelSession` across conversation turns so context stays warm.
-/// - Communicates directly with the prewarmed background server for sub-second responses.
-/// - Zero cold starts: model weights & KV cache are pre-loaded at launch.
+/// Primary AI Agent Engine supporting configurable execution modes:
+/// 1. **Background Daemon (`fm serve`, port 1976)**: Fastest, sub-second responses via system Apple Intelligence daemon.
+/// 2. **Embedded In-App (`LanguageModelSession`)**: Runs natively inside the app process memory.
 public final class AppleFMAgentEngine: AgentEngine, @unchecked Sendable {
     public init() {}
 
-    /// Prewarms the background FM server.
+    /// Prewarms the selected engine backend.
     public func prewarm(catalog: [Item], settings: AppSettings) {
-        AppleFMBackgroundServer.shared.start(catalog: catalog, currencySymbol: settings.currencySymbol)
+        if settings.executionMode == .backgroundDaemon {
+            AppleFMServerManager.shared.ensureDaemonRunning(catalog: catalog, currencySymbol: settings.currencySymbol)
+        } else {
+            AppleFMBackgroundServer.shared.start(catalog: catalog, currencySymbol: settings.currencySymbol)
+        }
     }
 
     /// Resets the continuous session transcript.
@@ -25,18 +26,29 @@ public final class AppleFMAgentEngine: AgentEngine, @unchecked Sendable {
         catalog: [Item],
         settings: AppSettings
     ) async throws -> AgentMessage {
-        // Ensure background server is started & prewarmed
-        AppleFMBackgroundServer.shared.start(catalog: catalog, currencySymbol: settings.currencySymbol)
-
         do {
-            // Process directly via the persistent background server actor
-            let content = try await AppleFMBackgroundServer.shared.processDirect(userInput: userInput)
+            let content: String
+            if settings.executionMode == .backgroundDaemon {
+                content = try await AppleFMServerManager.shared.queryDaemon(
+                    userInput: userInput,
+                    conversationHistory: conversationHistory,
+                    catalog: catalog,
+                    currencySymbol: settings.currencySymbol
+                )
+            } else {
+                AppleFMBackgroundServer.shared.start(catalog: catalog, currencySymbol: settings.currencySymbol)
+                content = try await AppleFMBackgroundServer.shared.processDirect(
+                    userInput: userInput,
+                    catalog: catalog,
+                    currencySymbol: settings.currencySymbol
+                )
+            }
             return LLMResponseParser.parse(content: content, catalog: catalog, settings: settings)
         } catch {
             return AgentMessage(
                 role: .agent,
-                text: "Error generating response from Apple Foundation Model: \(error.localizedDescription)",
-                thoughtProcess: "Background FM server execution error: \(error.localizedDescription)",
+                text: "Error generating response: \(error.localizedDescription)",
+                thoughtProcess: "Execution error: \(error.localizedDescription)",
                 status: .error
             )
         }
