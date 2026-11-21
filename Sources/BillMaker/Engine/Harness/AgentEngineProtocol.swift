@@ -17,7 +17,7 @@ public protocol AgentEngine: Sendable {
     /// - Parameters:
     ///   - userInput: The raw input string entered or spoken by the user (e.g. `"2kg aloo aur 1L sarso tel"`).
     ///   - conversationHistory: Prior messages in the conversation, used to resolve pending clarifications (e.g. answering which oil).
-    ///   - catalog: The active list of store inventory items, including names, colloquial aliases, unit types, and prices.
+    ///   - catalog: The active list of store inventory items, including names, unit types, and prices.
     ///   - settings: Active user preferences, including currency symbol, tax rate, and engine configuration.
     /// - Returns: An `AgentMessage` representing the agent's response, parsed items, computed subtotal, and JSON payload.
     func processMessage(
@@ -26,4 +26,15 @@ public protocol AgentEngine: Sendable {
         catalog: [Item],
         settings: AppSettings
     ) async throws -> AgentMessage
+
+    /// Prewarms the AI engine in the background to ensure near-instant response times.
+    func prewarm(catalog: [Item], settings: AppSettings)
+
+    /// Resets the continuous session transcript to start fresh.
+    func resetSession(catalog: [Item], settings: AppSettings)
+}
+
+public extension AgentEngine {
+    func prewarm(catalog: [Item], settings: AppSettings) {}
+    func resetSession(catalog: [Item], settings: AppSettings) {}
 }

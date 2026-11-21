@@ -7,8 +7,8 @@ final class LLMParsingTests: XCTestCase {
     override func setUp() {
         super.setUp()
         sampleCatalog = [
-            Item(name: "Potato", aliases: ["Aloo", "Batata"], unitType: .kg, pricePerUnit: 30.0),
-            Item(name: "Mustard Oil", aliases: ["Sarson ka tel", "Sarso tel"], unitType: .litre, pricePerUnit: 160.0)
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0)
         ]
     }
 
@@ -16,15 +16,14 @@ final class LLMParsingTests: XCTestCase {
         let systemPrompt = LLMPromptBuilder.buildSystemPrompt(catalog: sampleCatalog, currencySymbol: "₹")
 
         // Must contain inventory context
-        XCTAssertTrue(systemPrompt.contains("STORE INVENTORY CATALOG:"))
+        XCTAssertTrue(systemPrompt.contains("STORE CATALOG:"))
         XCTAssertTrue(systemPrompt.contains("Potato"))
-        XCTAssertTrue(systemPrompt.contains("Aloo"))
         XCTAssertTrue(systemPrompt.contains("Mustard Oil"))
         XCTAssertTrue(systemPrompt.contains("₹30.0"))
         XCTAssertTrue(systemPrompt.contains("₹160.0"))
 
         // Must contain critical rules
-        XCTAssertTrue(systemPrompt.contains("Evaluate ONLY the user's current request"))
+        XCTAssertTrue(systemPrompt.contains("Process ONLY the customer's current request"))
         XCTAssertTrue(systemPrompt.contains("<thought>...</thought>"))
         XCTAssertTrue(systemPrompt.contains("```json"))
     }

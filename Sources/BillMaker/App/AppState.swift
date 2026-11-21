@@ -44,6 +44,12 @@ public final class AppState: ObservableObject {
         self.settings = settingsStorage.loadSettings()
         self.catalog = catalogStorage.loadCatalog()
         setupWelcomeMessage()
+        prewarmEngine()
+    }
+
+    /// Prewarms the AI engine so first input responds with zero cold-start delay.
+    public func prewarmEngine() {
+        agentEngine.prewarm(catalog: catalog, settings: settings)
     }
 
     private func setupWelcomeMessage() {
@@ -147,12 +153,14 @@ public final class AppState: ObservableObject {
     public func clearConversation() {
         messages.removeAll()
         setupWelcomeMessage()
+        agentEngine.resetSession(catalog: catalog, settings: settings)
     }
 
     public func resetBill() {
         billHistory.removeAll()
         canUndo = false
         currentBill = nil
+        agentEngine.resetSession(catalog: catalog, settings: settings)
     }
 
     // MARK: - Catalog Management
@@ -160,33 +168,39 @@ public final class AppState: ObservableObject {
     public func addItem(_ item: Item) {
         catalog.append(item)
         catalogStorage.saveCatalog(catalog)
+        prewarmEngine()
     }
 
     public func updateItem(_ item: Item) {
         if let idx = catalog.firstIndex(where: { $0.id == item.id }) {
             catalog[idx] = item
             catalogStorage.saveCatalog(catalog)
+            prewarmEngine()
         }
     }
 
     public func deleteItem(at offsets: IndexSet) {
         catalog.remove(atOffsets: offsets)
         catalogStorage.saveCatalog(catalog)
+        prewarmEngine()
     }
 
     public func deleteItem(_ item: Item) {
         catalog.removeAll(where: { $0.id == item.id })
         catalogStorage.saveCatalog(catalog)
+        prewarmEngine()
     }
 
     public func resetCatalogToDefaults() {
         catalog = catalogStorage.loadDefaultCatalog()
         catalogStorage.saveCatalog(catalog)
+        prewarmEngine()
     }
 
     // MARK: - Settings Management
 
     public func saveSettings() {
         settingsStorage.saveSettings(settings)
+        prewarmEngine()
     }
 }

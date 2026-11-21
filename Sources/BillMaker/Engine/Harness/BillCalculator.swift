@@ -30,8 +30,7 @@ public struct BillCalculator {
             }
             let cleanName = parsed.itemName.lowercased().trimmingCharacters(in: .whitespaces)
             return catalog.first { item in
-                item.name.lowercased() == cleanName ||
-                item.aliases.contains { $0.lowercased() == cleanName }
+                item.name.lowercased() == cleanName
             }
         }()
 

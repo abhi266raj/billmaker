@@ -24,7 +24,6 @@ public struct CatalogView: View {
             if trimmed.isEmpty { return true }
 
             return item.name.lowercased().contains(trimmed) ||
-                item.aliases.contains { $0.lowercased().contains(trimmed) } ||
                 item.category.lowercased().contains(trimmed) ||
                 item.unitType.rawValue.contains(trimmed)
         }
@@ -50,7 +49,7 @@ public struct CatalogView: View {
                             .foregroundColor(.accentColor)
                             .clipShape(Capsule())
                     }
-                    Text("This catalog serves as the dynamic context given to the Local AI Agent to match items, colloquial aliases, and prices.")
+                    Text("This catalog serves as the dynamic context given to the Apple Foundation Models AI Agent to bill items and prices.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -81,7 +80,7 @@ public struct CatalogView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    TextField("Search item name, Hindi alias (e.g. Aloo, Tamatar)...", text: $searchText)
+                    TextField("Search item name, category (e.g. Potato, Dairy)...", text: $searchText)
                         .textFieldStyle(.plain)
                     if !searchText.isEmpty {
                         Button(action: { searchText = "" }) {
@@ -137,19 +136,7 @@ public struct CatalogView: View {
                             }
                         }
                     }
-                    .width(min: 130, ideal: 160)
-
-                    TableColumn("Other Names / Aliases") { item in
-                        if item.aliases.isEmpty {
-                            Text("—")
-                                .foregroundColor(.secondary)
-                        } else {
-                            Text(item.aliasesFormatted)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                        }
-                    }
-                    .width(min: 180, ideal: 240)
+                    .width(min: 150, ideal: 200)
 
                     TableColumn("Category") { item in
                         Text(item.category)

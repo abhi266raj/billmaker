@@ -13,13 +13,13 @@ public enum UnitType: String, Codable, CaseIterable, Identifiable {
 
     public var displayName: String {
         switch self {
-        case .kg: return "Per Kilogram (kg)"
-        case .gram: return "Per Gram (g)"
-        case .piece: return "Per Piece / Unit"
-        case .packet: return "Per Packet"
-        case .litre: return "Per Litre (L)"
-        case .ml: return "Per Millilitre (ml)"
-        case .dozen: return "Per Dozen (12 pcs)"
+        case .kg: return "Kilogram (kg)"
+        case .gram: return "Gram (g)"
+        case .piece: return "Piece / Unit (pc)"
+        case .packet: return "Packet (pkt)"
+        case .litre: return "Litre (L)"
+        case .ml: return "Millilitre (ml)"
+        case .dozen: return "Dozen (12 pcs)"
         }
     }
 
@@ -51,7 +51,6 @@ public enum UnitType: String, Codable, CaseIterable, Identifiable {
 public struct Item: Identifiable, Codable, Hashable {
     public var id: UUID
     public var name: String
-    public var aliases: [String]
     public var unitType: UnitType
     public var pricePerUnit: Double
     public var category: String
@@ -61,7 +60,6 @@ public struct Item: Identifiable, Codable, Hashable {
     public init(
         id: UUID = UUID(),
         name: String,
-        aliases: [String] = [],
         unitType: UnitType = .kg,
         pricePerUnit: Double,
         category: String = "General",
@@ -70,7 +68,6 @@ public struct Item: Identifiable, Codable, Hashable {
     ) {
         self.id = id
         self.name = name
-        self.aliases = aliases
         self.unitType = unitType
         self.pricePerUnit = pricePerUnit
         self.category = category
@@ -78,13 +75,23 @@ public struct Item: Identifiable, Codable, Hashable {
         self.inStock = inStock
     }
 
-    public var allSearchTerms: [String] {
-        var terms = [name.lowercased()]
-        terms.append(contentsOf: aliases.map { $0.lowercased().trimmingCharacters(in: .whitespaces) })
-        return terms.filter { !$0.isEmpty }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.name = try container.decode(String.self, forKey: .name)
+        self.unitType = try container.decode(UnitType.self, forKey: .unitType)
+        self.pricePerUnit = try container.decode(Double.self, forKey: .pricePerUnit)
+        self.category = try container.decodeIfPresent(String.self, forKey: .category) ?? "General"
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        self.inStock = try container.decodeIfPresent(Bool.self, forKey: .inStock) ?? true
+        // Aliases are discarded if present in legacy JSON
     }
 
-    public var aliasesFormatted: String {
-        aliases.joined(separator: ", ")
+    public var allSearchTerms: [String] {
+        var terms = [name.lowercased()]
+        if !category.isEmpty {
+            terms.append(category.lowercased())
+        }
+        return terms.filter { !$0.isEmpty }
     }
 }

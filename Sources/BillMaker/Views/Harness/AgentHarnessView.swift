@@ -46,6 +46,7 @@ public struct AgentHarnessView: View {
         }
         .onAppear {
             isInputFocused = true
+            appState.prewarmEngine()
         }
     }
 
@@ -151,21 +152,15 @@ public struct AgentHarnessView: View {
 
     private var engineBadge: some View {
         HStack(spacing: 5) {
-            Image(systemName: "apple.intelligence")
+            Image(systemName: "bolt.fill")
                 .font(.caption2)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.blue, .purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-            Text("Apple Foundation Models")
+                .foregroundColor(.green)
+            Text("Apple FM Server: Prewarmed")
                 .font(.caption2.weight(.medium))
         }
         .padding(.horizontal, 7)
         .padding(.vertical, 3)
-        .background(Color.purple.opacity(0.12))
+        .background(Color.green.opacity(0.12))
         .cornerRadius(5)
     }
 

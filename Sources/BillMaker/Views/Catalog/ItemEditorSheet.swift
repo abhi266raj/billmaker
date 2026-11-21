@@ -7,7 +7,6 @@ public struct ItemEditorSheet: View {
     let onSave: (Item) -> Void
 
     @State private var name: String = ""
-    @State private var aliasesText: String = ""
     @State private var unitType: UnitType = .kg
     @State private var pricePerUnit: Double = 0.0
     @State private var category: String = "Vegetables"
@@ -26,9 +25,6 @@ public struct ItemEditorSheet: View {
             Form {
                 Section(header: Text("Basic Information")) {
                     TextField("Item Name (e.g. Potato, Cow Milk)", text: $name)
-
-                    TextField("Other Names / Aliases (comma-separated, e.g. Aloo, Batata, Aalu)", text: $aliasesText)
-                        .help("Add colloquial, Hindi, or alternative names that customers might use.")
 
                     Picker("Category", selection: $category) {
                         ForEach(standardCategories, id: \.self) { cat in
@@ -72,11 +68,10 @@ public struct ItemEditorSheet: View {
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || pricePerUnit <= 0)
                 }
             }
-            .frame(minWidth: 480, minHeight: 380)
+            .frame(minWidth: 460, minHeight: 340)
             .onAppear {
                 if let item = existingItem {
                     name = item.name
-                    aliasesText = item.aliases.joined(separator: ", ")
                     unitType = item.unitType
                     pricePerUnit = item.pricePerUnit
                     category = item.category
@@ -88,15 +83,9 @@ public struct ItemEditorSheet: View {
     }
 
     private func saveItem() {
-        let aliasesList = aliasesText
-            .components(separatedBy: ",")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
         let item = Item(
             id: existingItem?.id ?? UUID(),
             name: name.trimmingCharacters(in: .whitespaces),
-            aliases: aliasesList,
             unitType: unitType,
             pricePerUnit: pricePerUnit,
             category: category,

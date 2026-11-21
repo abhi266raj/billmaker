@@ -24,14 +24,30 @@ public struct SettingsView: View {
                         )
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Apple Foundation Models")
+                        Text("Apple Foundation Models (Background Server)")
                             .font(.headline)
-                        Text("100% on-device Apple Intelligence model. Automatically performs item extraction, Hindi/English reasoning, typo auto-correction, and unit handling privately on your Mac.")
+                        Text("Dedicated prewarmed background server on port 9876. Holds continuous model sessions in memory to provide ultra-fast, low-latency parsing.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
                 .padding(.vertical, 4)
+
+                HStack {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 8, height: 8)
+                        Text("Server Status: 127.0.0.1:9876 (Prewarmed & Continuous Session Active)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Re-warm Session") {
+                        appState.prewarmEngine()
+                    }
+                    .font(.caption)
+                }
             }
 
             Section(header: Text("Currency & Billing Preferences")) {

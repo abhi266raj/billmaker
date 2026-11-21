@@ -148,7 +148,7 @@ public struct LiveInvoiceView: View {
 
     private var tableColumnHeader: some View {
         HStack {
-            Text("ITEM / ALIAS")
+            Text("ITEM")
                 .font(.caption2.weight(.bold))
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -27,6 +27,7 @@
 		7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31814D047DFD89075E97FF9D /* SettingsView.swift */; };
 		81C727B929DAB0BAA333E204 /* SpeechRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */; };
 		99939421974C70CA9EA3355F /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */; };
+		A5FA34C33068E14551057D62 /* AppleFMBackgroundServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */; };
 		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
 		B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */; };
@@ -64,6 +65,7 @@
 		3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceCardComponents.swift; sourceTree = "<group>"; };
 		46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		4D5214870783E7496732F39D /* AgentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMessage.swift; sourceTree = "<group>"; };
+		5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMBackgroundServer.swift; sourceTree = "<group>"; };
 		6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMAgentEngine.swift; sourceTree = "<group>"; };
 		6E3099402FD2BE17F77B6437 /* ReceiptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptService.swift; sourceTree = "<group>"; };
 		6F11597044C462B6F9622EB6 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 			isa = PBXGroup;
 			children = (
 				6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */,
+				5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */,
 				A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */,
 				8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */,
 			);
@@ -369,6 +372,7 @@
 				4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */,
 				1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */,
 				BC08531B5C8ABD428CF7C672 /* AppleFMAgentEngine.swift in Sources */,
+				A5FA34C33068E14551057D62 /* AppleFMBackgroundServer.swift in Sources */,
 				64407F793284238483465BA8 /* Bill.swift in Sources */,
 				0DD48D2FAF970A77C17EB98A /* BillCalculator.swift in Sources */,
 				CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */,

@@ -37,12 +37,12 @@ final class BillCalculationTests: XCTestCase {
     override func setUp() {
         super.setUp()
         sampleCatalog = [
-            Item(name: "Potato", aliases: ["Aloo", "Batata"], unitType: .kg, pricePerUnit: 30.0),
-            Item(name: "Tomato", aliases: ["Tamatar"], unitType: .kg, pricePerUnit: 40.0),
-            Item(name: "Mustard Oil", aliases: ["Sarson ka tel", "Sarso tel"], unitType: .litre, pricePerUnit: 160.0),
-            Item(name: "Paneer", aliases: ["Cottage Cheese"], unitType: .kg, pricePerUnit: 380.0),
-            Item(name: "Eggs", aliases: ["Ande", "Anda"], unitType: .piece, pricePerUnit: 7.0),
-            Item(name: "Banana", aliases: ["Kela", "Kele"], unitType: .dozen, pricePerUnit: 60.0)
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
+            Item(name: "Tomato", unitType: .kg, pricePerUnit: 40.0),
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Paneer", unitType: .kg, pricePerUnit: 380.0),
+            Item(name: "Eggs", unitType: .piece, pricePerUnit: 7.0),
+            Item(name: "Banana", unitType: .dozen, pricePerUnit: 60.0)
         ]
     }
 

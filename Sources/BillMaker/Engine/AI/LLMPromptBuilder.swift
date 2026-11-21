@@ -1,52 +1,38 @@
 import Foundation
 
-/// Constructs the prompt, dynamic catalog context, and message payload passed to the Server AI.
-///
-/// Everything is handled by the AI:
-/// - Parsing multi-item orders without punctuation
-/// - Spelling error & typo fixing
-/// - Colloquial Hindi & English measurements
-/// - Unit mismatch checks
-/// - Conversational questions
+/// Constructs the prompt, dynamic catalog context, and message payload passed to Apple Foundation Models.
 public struct LLMPromptBuilder {
-    /// Builds the system prompt string containing the active store catalog and operational rules.
+    /// Builds an ultra-compact system prompt containing the active store catalog and operating rules.
     public static func buildSystemPrompt(catalog: [Item], currencySymbol: String) -> String {
         let catalogSummary: String = catalog.map { item in
-            "- ID: \(item.id.uuidString) | Name: \(item.name) | Aliases: [\(item.aliases.joined(separator: ", "))] | Unit: \(item.unitType.rawValue) | Price: \(currencySymbol)\(item.pricePerUnit)"
+            "- \(item.name): \(currencySymbol)\(item.pricePerUnit)/\(item.unitType.shortLabel)"
         }.joined(separator: "\n")
 
         return """
-        You are an intelligent, fast retail & grocery store AI billing assistant.
-        You have direct access to the store's inventory catalog below.
-
-        STORE INVENTORY CATALOG:
+        You are a fast retail grocery store billing assistant powered by Apple Foundation Models.
+        STORE CATALOG:
         \(catalogSummary)
 
-        CRITICAL OPERATING RULES:
-        1. Context Isolation: Evaluate ONLY the user's current request. Do not include past completed orders.
-        2. Spelling Mistakes & Typos: Automatically fix typos (e.g. 'potaoe' -> Potato, 'panir' -> Paneer, 'tamatr' -> Tomato) and directly accept them.
-        3. Colloquial Quantities & Hindi: Understand both English and Hindi colloquial expressions ('dedh kilo' = 1.5 kg, 'dhai' = 2.5, 'aadha kilo' = 0.5 kg, 'ek paav' = 0.25 kg, '२ किलो' = 2 kg, 'दो किलो' = 2 kg, 'half dozen' = 0.5 dozen).
-        4. Multi-Item Extraction: When a user gives multiple items in one order (e.g. "2kg potato 1kg tomato 500g paneer"), extract ALL items into the items array. Do not interrupt with unnecessary questions.
-        5. Unit Mismatch Correction: If a user specifies litres for an item sold in kg (or kg for an item sold in litres), use the catalog's unit and note it in the response message.
-        6. Ambiguity: If an item is truly ambiguous (e.g. "2 kg tel" when multiple oils exist), ask back which one in ONE short sentence ("Which oil would you like? We have Mustard Oil or Sunflower Oil.") and set status to "needs_clarification".
-        7. Reasoning: ALWAYS output your step-by-step reasoning inside <thought>...</thought> tags before your response.
-        8. Structured JSON: ALWAYS output clean JSON matching the following schema inside a ```json ... ``` code fence:
+        RULES:
+        1. Context Isolation: Process ONLY the customer's current request.
+        2. Multilingual Names & Typos: Understand Hindi, Hinglish, regional synonyms (e.g. 'aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk, 'anda'->Eggs, 'kela'->Banana, 'cheeni'->Sugar), and auto-correct typos.
+        3. Colloquial Quantities: Understand colloquial amounts ('dedh kilo'=1.5kg, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
+        4. Multi-Item Extraction: Extract ALL items into the items array.
+        5. Ambiguity: Only if truly ambiguous (e.g. '2L oil' when multiple oils exist), ask which oil in 1 short sentence ("Which oil would you like?").
+        6. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
+        7. Output: Format immediately as JSON inside a ```json ... ``` code fence:
 
         ```json
         {
           "status": "ready" | "needs_clarification",
-          "message": "Concise 1-sentence response to customer",
-          "thought": "Brief reasoning summary",
+          "message": "Concise 1-sentence confirmation",
+          "thought": "Brief 1-sentence reasoning",
           "items": [
             {
-              "itemId": "uuid-or-null",
-              "itemName": "Catalog Item Name",
-              "matchedAlias": "what user called it",
+              "itemName": "Exact Catalog Name",
               "quantity": 1.5,
               "unit": "kg",
-              "unitPrice": 30.0,
-              "wasAutoCorrected": false,
-              "wasUnitCorrected": false
+              "unitPrice": 30.0
             }
           ]
         }
