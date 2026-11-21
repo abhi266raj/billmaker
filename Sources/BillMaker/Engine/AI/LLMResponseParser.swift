@@ -43,11 +43,68 @@ public struct LLMResponseParser {
         }
 
         // 3. Strict Requirement: Output from LLM must be valid JSON; missing JSON is an error
-        guard let payload = parsedPayload, let items = payload.items, !items.isEmpty else {
+        guard let payload = parsedPayload else {
             return AgentMessage(
                 role: .agent,
                 text: "Error: AI response did not contain valid structured JSON. Please re-enter the items.",
                 thoughtProcess: thought ?? "No valid structured JSON payload extracted from model completion.",
+                rawJsonOutput: extractedJson,
+                status: .error,
+                canUndo: false
+            )
+        }
+
+        // 3b. If payload is a clarification request (or asks a clarifying question with empty items)
+        if payload.status == "needs_clarification" || (payload.items?.isEmpty == true && payload.message.contains("?")) {
+            let candidateNames: [String] = {
+                if let existing = payload.pendingClarification?.candidateNames, !existing.isEmpty {
+                    return existing
+                }
+                return catalog.filter { payload.message.localizedCaseInsensitiveContains($0.name) }.map { $0.name }
+            }()
+
+            let pendingClarification = payload.pendingClarification ?? PendingClarification(
+                query: payload.message,
+                quantity: 1.0,
+                unit: "pc",
+                candidateNames: candidateNames
+            )
+
+            return AgentMessage(
+                role: .agent,
+                text: payload.message,
+                thoughtProcess: thought ?? payload.thought ?? "Clarification requested for ambiguous item.",
+                rawJsonOutput: extractedJson,
+                status: .needsClarification,
+                pendingClarification: pendingClarification,
+                canUndo: false
+            )
+        }
+
+        // 3c. If items array was empty on "ready", auto-resolve if a catalog item is named in the confirmation
+        var items = payload.items ?? []
+        if items.isEmpty {
+            for catItem in catalog {
+                if payload.message.localizedCaseInsensitiveContains(catItem.name) {
+                    items.append(
+                        AgentParsedItem(
+                            itemId: catItem.id.uuidString,
+                            itemName: catItem.name,
+                            quantity: 1.0,
+                            unit: catItem.unitType.shortLabel,
+                            unitPrice: catItem.pricePerUnit
+                        )
+                    )
+                    break
+                }
+            }
+        }
+
+        guard !items.isEmpty else {
+            return AgentMessage(
+                role: .agent,
+                text: payload.message.isEmpty ? "Error: Model returned no items." : payload.message,
+                thoughtProcess: thought ?? payload.thought ?? "Model returned empty items array.",
                 rawJsonOutput: extractedJson,
                 status: .error,
                 canUndo: false

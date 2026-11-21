@@ -175,6 +175,35 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertNotNil(parsedMessage.thoughtProcess)
     }
 
+    func testClarificationPayloadWithEmptyItemsAutoResolvesMentionedCatalogItem() {
+        let clarificationOutput = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Mustard Oil is ₹160.0/L, but you requested 1 kg oil. Please confirm if you meant Mustard Oil (₹160.0/L) or another oil.",
+          "thought": "The customer requested 1 kg oil, but the catalog lists Mustard Oil priced at ₹160.0/L, so I need clarification.",
+          "items": []
+        }
+        ```
+        """
+
+        let catalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0)
+        ]
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: clarificationOutput,
+            catalog: catalog,
+            settings: .defaultSettings
+        )
+
+        // Verifies the parser auto-rescues the catalog item so billing never drops the item
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
+        XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Mustard Oil")
+        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 160.0)
+    }
+
     func testLiveDaemonIntegrationIfOnline() async throws {
         guard AppleFMServerManager.shared.isDaemonOnline() else { return }
         let catalog = [
