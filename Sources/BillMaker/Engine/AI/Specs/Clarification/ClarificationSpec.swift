@@ -7,6 +7,7 @@ import AgentAtom
 
 /// ModelledSpec for verifying whether user input constitutes a valid clarification response
 /// or whether it should fall back to the initial billing state.
+/// Instructions are directly embedded as part of the specification.
 public struct ClarificationSpec: ModelledSpec {
     public typealias Input = ClarificationInput
     public typealias Output = ClarificationOutput
@@ -16,10 +17,28 @@ public struct ClarificationSpec: ModelledSpec {
 
     public let input: ClarificationInput
     public var output: ClarificationOutput?
-    public var instructions: String
+    private let customInstructions: String?
 
-    public init(input: ClarificationInput, instructions: String) {
+    public var instructions: String {
+        customInstructions ?? defaultInstructions
+    }
+
+    public var defaultInstructions: String {
+        """
+        You are verifying whether the customer's response resolves a pending clarification.
+        Pending query: '\(input.pendingQuery)' (Qty: \(input.pendingQuantity) \(input.pendingUnit))
+        Available options: \(input.candidateOptions.joined(separator: ", "))
+
+        Instructions:
+        1. If the customer clearly selected one of the available options (by name, number, or description), set isRealClarification = true, selectedItemName to the option, and fallbackToInitial = false.
+        2. If the customer asked for something completely different or canceled, set isRealClarification = false and fallbackToInitial = true.
+        Return output matching ClarificationOutput.
+        """
+    }
+
+    public init(input: ClarificationInput, instructions: String? = nil) {
         self.input = input
-        self.instructions = instructions
+        self.output = nil
+        self.customInstructions = instructions
     }
 }

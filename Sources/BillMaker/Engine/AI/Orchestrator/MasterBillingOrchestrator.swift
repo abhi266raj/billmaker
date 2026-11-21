@@ -166,18 +166,7 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
             catalogSummary: catalogSummary
         )
 
-        let instructions = """
-        You are verifying whether the customer's response resolves a pending clarification.
-        Pending query: '\(pending.query)' (Qty: \(pending.quantity) \(pending.unit))
-        Available options: \(pending.candidateNames.joined(separator: ", "))
-
-        Instructions:
-        1. If the customer clearly selected one of the available options (by name, number, or description), set isRealClarification = true, selectedItemName to the option, and fallbackToInitial = false.
-        2. If the customer asked for something completely different or canceled, set isRealClarification = false and fallbackToInitial = true.
-        Return output matching ClarificationOutput.
-        """
-
-        let spec = ClarificationSpec(input: input, instructions: instructions)
+        let spec = ClarificationSpec(input: input)
         let session = AgentAtomSession(
             configuration: AgentAtomSession.Configuration(
                 catalog: catalog,
@@ -226,13 +215,14 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
         catalog: [Item],
         settings: AppSettings
     ) async throws -> AgentMessage {
-        let catalogSummary = catalog.map { item in
-            "- \(item.name): \(settings.currencySymbol)\(item.pricePerUnit)/\(item.unitType.shortLabel)"
-        }.joined(separator: "\n")
-
-        let instructions = LLMPromptBuilder.buildSystemPrompt(catalog: catalog, currencySymbol: settings.currencySymbol)
-        let input = BillingInput(request: userInput, catalogSummary: catalogSummary, currencySymbol: settings.currencySymbol)
-        let spec = BillingSpec(input: input, instructions: instructions)
+        let previousContext = conversationHistory.suffix(4).map { "\($0.role.rawValue.capitalized): \($0.text)" }.joined(separator: "\n")
+        let input = BillingInput(
+            request: userInput,
+            catalog: catalog,
+            currencySymbol: settings.currencySymbol,
+            previousContext: previousContext.isEmpty ? nil : previousContext
+        )
+        let spec = BillingSpec(input: input)
 
         let session = AgentAtomSession(
             configuration: AgentAtomSession.Configuration(

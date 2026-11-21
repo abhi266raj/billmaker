@@ -16,8 +16,14 @@ final class LLMParsingTests: XCTestCase {
         ]
     }
 
-    func testLLMPromptBuilderConstructsCatalogContextAndRules() {
-        let systemPrompt = LLMPromptBuilder.buildSystemPrompt(catalog: sampleCatalog, currencySymbol: "₹")
+    func testBillingSpecConstructsCatalogContextAndRules() {
+        let input = BillingInput(
+            request: "2kg aloo aur 1L tel",
+            catalog: sampleCatalog,
+            currencySymbol: "₹"
+        )
+        let spec = BillingSpec(input: input)
+        let systemPrompt = spec.instructions
 
         // Must contain inventory context
         XCTAssertTrue(systemPrompt.contains("STORE CATALOG:"))
@@ -32,17 +38,19 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertTrue(systemPrompt.contains("```json"))
     }
 
-    func testLLMPromptBuilderChatMessages() {
-        let messages = LLMPromptBuilder.buildChatMessages(
-            userInput: "2kg aloo aur 1L tel",
+    func testBillingInputJsonAndPreviousContext() {
+        let input = BillingInput(
+            request: "2kg aloo aur 1L tel",
             catalog: sampleCatalog,
-            currencySymbol: "₹"
+            currencySymbol: "₹",
+            previousContext: "User: 1L oil\nAgent: Which oil?",
+            asJSON: true
         )
+        let spec = BillingSpec(input: input)
 
-        XCTAssertEqual(messages.count, 2)
-        XCTAssertEqual(messages[0]["role"], "system")
-        XCTAssertEqual(messages[1]["role"], "user")
-        XCTAssertEqual(messages[1]["content"], "2kg aloo aur 1L tel")
+        XCTAssertTrue(input.catalogSummary.contains("\"name\" : \"Potato\"") || input.catalogSummary.contains("\"name\":\"Potato\""))
+        XCTAssertTrue(spec.instructions.contains("PREVIOUS CONVERSATION CONTEXT:"))
+        XCTAssertTrue(spec.instructions.contains("Which oil?"))
     }
 
     func testLLMResponseParserExtractsThoughtAndJSON() {

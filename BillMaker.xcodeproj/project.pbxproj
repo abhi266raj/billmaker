@@ -36,12 +36,10 @@
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
 		ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */; };
 		ACE6B4331BE81F72483C6A8B /* AgentAtomSource in Frameworks */ = {isa = PBXBuildFile; productRef = 5072CD1B503CC5B4B038E1FC /* AgentAtomSource */; };
-		B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */; };
 		BFD64C9EEC8CB5D2EAECFB03 /* ClarificationInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19CD6D32BA6D012040A1754 /* ClarificationInput.swift */; };
 		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
 		C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */; };
 		C7C364D95D8AADCAD749C934 /* AgentAtomBillingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */; };
-		CA18DA0E608F44061C837C30 /* AgentResponseBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */; };
 		CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */; };
 		D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5214870783E7496732F39D /* AgentMessage.swift */; };
 		DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */; };
@@ -68,7 +66,6 @@
 		1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculationTests.swift; sourceTree = "<group>"; };
 		1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DefaultCatalog.json; sourceTree = "<group>"; };
 		21D97D8C44B1BF3998FDFB75 /* Bill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bill.swift; sourceTree = "<group>"; };
-		2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentResponseBuilder.swift; sourceTree = "<group>"; };
 		2F0171960EA96B11E40CC702 /* ParsingDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingDiagnosticsView.swift; sourceTree = "<group>"; };
 		2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMParsingTests.swift; sourceTree = "<group>"; };
 		31814D047DFD89075E97FF9D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -92,7 +89,6 @@
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
 		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
-		A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMPromptBuilder.swift; sourceTree = "<group>"; };
 		B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtLogger.swift; sourceTree = "<group>"; };
 		B9C3A6B4BC1744431D20F3AC /* BillingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingSpec.swift; sourceTree = "<group>"; };
 		BCFC840560DF3FCD27200680 /* BillingInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingInput.swift; sourceTree = "<group>"; };
@@ -286,7 +282,6 @@
 			children = (
 				664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */,
 				94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */,
-				A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */,
 				8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */,
 				44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */,
 				D84681EF20011ABDFDCCD38A /* Orchestrator */,
@@ -325,7 +320,6 @@
 			isa = PBXGroup;
 			children = (
 				A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */,
-				2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */,
 				8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */,
 				B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */,
 			);
@@ -445,7 +439,6 @@
 				702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */,
 				0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */,
 				D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */,
-				CA18DA0E608F44061C837C30 /* AgentResponseBuilder.swift in Sources */,
 				4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */,
 				1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */,
 				64407F793284238483465BA8 /* Bill.swift in Sources */,
@@ -467,7 +460,6 @@
 				ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */,
 				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
 				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
-				B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */,
 				7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */,
 				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
 				500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */,
