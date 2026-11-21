@@ -29,8 +29,23 @@ public struct BillCalculator {
                 }
             }
             let cleanName = parsed.itemName.lowercased().trimmingCharacters(in: .whitespaces)
-            return catalog.first { item in
-                item.name.lowercased() == cleanName
+            // 1. Exact case-insensitive match
+            if let exact = catalog.first(where: { $0.name.lowercased() == cleanName }) {
+                return exact
+            }
+            // 2. Prefix or containment match (e.g. "Atta" -> "Atta (Wheat Flour)", "Maggi" -> "Maggi Noodles")
+            if let match = catalog.first(where: { cat in
+                let cLower = cat.name.lowercased()
+                return cLower.hasPrefix(cleanName) || cleanName.hasPrefix(cLower) ||
+                    (cleanName.count >= 4 && (cLower.contains(cleanName) || cleanName.contains(cLower)))
+            }) {
+                return match
+            }
+            // 3. Colloquial alias match
+            return catalog.first { cat in
+                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
+                    alias == cleanName || (alias.count >= 4 && (cleanName.contains(alias) || alias.contains(cleanName)))
+                }
             }
         }()
 

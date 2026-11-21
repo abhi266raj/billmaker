@@ -46,16 +46,19 @@ public struct ItemCatalogMatcher {
             list.append(contentsOf: ["surajmukhi", "soorajmukhi", "surajmukhi tel", "sunflower oil", "sunflower"])
         }
         if lower.contains("rice") {
-            list.append(contentsOf: ["chawal", "rice", "bhat"])
+            list.append(contentsOf: ["chawal", "rice", "bhat", "basmati", "basmati rice", "basmati chawal"])
         }
         if lower.contains("atta") || lower.contains("flour") || lower.contains("wheat") {
-            list.append(contentsOf: ["atta", "aata", "wheat flour", "gehun", "flour"])
+            list.append(contentsOf: ["atta", "aata", "wheat flour", "gehun", "flour", "gehun ka atta"])
+        }
+        if lower.contains("curd") {
+            list.append(contentsOf: ["dahi", "curd", "yogurt"])
         }
         if lower.contains("sugar") {
             list.append(contentsOf: ["cheeni", "chini", "shakkar", "sugar"])
         }
         if lower.contains("salt") {
-            list.append(contentsOf: ["namak", "salt", "sendha namak"])
+            list.append(contentsOf: ["namak", "salt", "sendha namak", "tata salt"])
         }
         if lower.contains("egg") {
             list.append(contentsOf: ["anda", "ande", "eggs", "egg"])
@@ -67,10 +70,10 @@ public struct ItemCatalogMatcher {
             list.append(contentsOf: ["seb", "apple", "apples"])
         }
         if lower.contains("maggi") {
-            list.append(contentsOf: ["maggi", "noodles", "maggie"])
+            list.append(contentsOf: ["maggi", "noodles", "maggie", "maggi noodles"])
         }
         if lower.contains("ginger") {
-            list.append(contentsOf: ["adrak", "ginger"])
+            list.append(contentsOf: ["adrak", "ginger", "adrakh"])
         }
 
         return Array(Set(list))

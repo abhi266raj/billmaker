@@ -305,11 +305,6 @@ public struct AgentRejectedItem: Codable, Hashable, Sendable {
     }
 
     public init(from decoder: Decoder) throws {
-        if let container = try? decoder.singleValueContainer(), let str = try? container.decode(String.self) {
-            self.item = str
-            self.reason = nil
-            return
-        }
         let container = try decoder.container(keyedBy: DynamicCodingKeys.self)
         var name = ""
         for key in ["item", "name", "itemName", "query"] {
@@ -695,7 +690,24 @@ public struct AgentJsonPayload: Codable, Sendable {
             }
             return items
         }
-        // 3. Single AgentParsedItem object
+        // 3. Dictionary of [itemName: Double] (e.g. {"Potato": 2.0, "Tomato": 1.0})
+        if let dblDict = try? container.decode([String: Double].self, forKey: key) {
+            return dblDict.map { AgentParsedItem(itemName: $0.key, quantity: $0.value, unit: "pc") }
+        }
+        // 4. Dictionary of [itemName: Int]
+        if let intDict = try? container.decode([String: Int].self, forKey: key) {
+            return intDict.map { AgentParsedItem(itemName: $0.key, quantity: Double($0.value), unit: "pc") }
+        }
+        // 5. Dictionary of [itemName: String] (e.g. {"Potato": "2kg", "Tomato": "1kg"})
+        if let strDict = try? container.decode([String: String].self, forKey: key) {
+            var items: [AgentParsedItem] = []
+            for (name, val) in strDict {
+                let (q, u) = parseQuantityAndUnit(val)
+                items.append(AgentParsedItem(itemName: name, quantity: q, unit: u))
+            }
+            return items
+        }
+        // 6. Single AgentParsedItem object
         if let single = try? container.decode(AgentParsedItem.self, forKey: key) {
             return [single]
         }
@@ -749,10 +761,35 @@ public struct AgentJsonPayload: Codable, Sendable {
             }
             return items
         }
-        // 3. Single AgentClarificationNeedItem object
+        // 3. Dictionary of [itemName: [String]] (options array)
+        if let dict = try? container.decode([String: [String]].self, forKey: key) {
+            return dict.map {
+                AgentClarificationNeedItem(item: $0.key, quantity: 1.0, unit: "pc", options: $0.value)
+            }
+        }
+        // 4. Single AgentClarificationNeedItem object
         if let single = try? container.decode(AgentClarificationNeedItem.self, forKey: key) {
             return [single]
         }
         return nil
+    }
+
+    private static func parseQuantityAndUnit(_ str: String) -> (Double, String) {
+        let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let regex = try? NSRegularExpression(pattern: #"^([0-9]+(?:\.[0-9]+)?)\s*([a-zA-Z]*)$"#)
+        if let match = regex?.firstMatch(in: trimmed, range: NSRange(location: 0, length: trimmed.utf16.count)) {
+            var qty = 1.0
+            var unit = "pc"
+            if let numRange = Range(match.range(at: 1), in: trimmed), let num = Double(trimmed[numRange]) {
+                qty = num
+            }
+            if match.range(at: 2).location != NSNotFound, let uRange = Range(match.range(at: 2), in: trimmed) {
+                let u = String(trimmed[uRange]).trimmingCharacters(in: .whitespaces)
+                if !u.isEmpty { unit = u }
+            }
+            return (qty, unit)
+        }
+        if let num = Double(trimmed) { return (num, "pc") }
+        return (1.0, "pc")
     }
 }

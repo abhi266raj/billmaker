@@ -1,4 +1,8 @@
 import XCTest
+import TypeDecoder
+#if canImport(AgentAtomSource)
+import AgentAtomSource
+#endif
 @testable import BillMaker
 
 final class LLMParsingTests: XCTestCase {
@@ -734,11 +738,185 @@ final class LLMParsingTests: XCTestCase {
     }
 
     func testAgentAtomBillingSpecConstruction() {
-        let input = BillingAgentInput(request: "2kg potato", catalogSummary: "- Potato: ₹30/kg", currencySymbol: "₹")
-        let spec = AgentAtomBillingSpec(input: input, instructions: "System instructions")
-        XCTAssertEqual(AgentAtomBillingSpec.identity.id, "billmaker-agent")
-        XCTAssertEqual(AgentAtomBillingSpec.identity.name, "BillMakerBillingAgent")
-        XCTAssertEqual(AgentAtomBillingSpec.role, "Fast retail grocery store billing assistant")
-        XCTAssertFalse(spec.inputJSON.rawValue.isEmpty)
+        let schema = JSONSchema(AgentAtomBillingOutput.self)
+        XCTAssertNotNil(schema)
+        XCTAssertTrue(schema?.rawValue.contains("verified") == true)
+        XCTAssertTrue(schema?.rawValue.contains("rejected") == true)
+        XCTAssertTrue(schema?.rawValue.contains("needClarification") == true)
+    }
+
+    func testMultipleItemsParsedFullyFromObjectDictionary() {
+        let json = """
+        ```json
+        {
+          "thought": "Parsed multiple items from grocery order.",
+          "message": "Added 2 kg Potato, 1 kg Tomato, and 1 L Cow Milk to your bill.",
+          "items": {
+            "verified": {
+              "Potato": {
+                "quantity": 2.0,
+                "unit": "kg",
+                "unitPrice": 30.0
+              },
+              "Tomato": {
+                "quantity": 1.0,
+                "unit": "kg",
+                "unitPrice": 40.0
+              },
+              "Cow Milk": {
+                "quantity": 1.0,
+                "unit": "L",
+                "unitPrice": 64.0
+              }
+            },
+            "rejected": {},
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato, 1kg tomato aur 1 litre doodh"
+        )
+
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 3)
+        let itemNames = Set(parsed.parsedItems?.map(\.itemName) ?? [])
+        XCTAssertTrue(itemNames.contains("Potato"))
+        XCTAssertTrue(itemNames.contains("Tomato"))
+        XCTAssertTrue(itemNames.contains("Cow Milk"))
+        XCTAssertNotNil(parsed.billSummary)
+        // Subtotals: Potato (2*30=60), Tomato (1*40=40), Milk (1*64=64) => Total subtotal: 164
+        XCTAssertEqual(parsed.billSummary?.subtotal, 164.0)
+    }
+
+    func testMultipleItemsWithSimpleQuantityDictionary() {
+        let json = """
+        ```json
+        {
+          "thought": "Parsed numeric dictionary.",
+          "message": "Added items.",
+          "items": {
+            "verified": {
+              "Potato": 2.0,
+              "Tomato": 1.5
+            },
+            "rejected": {},
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato aur dedh kilo tomato"
+        )
+
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 2)
+        let itemNames = Set(parsed.parsedItems?.map(\.itemName) ?? [])
+        XCTAssertTrue(itemNames.contains("Potato"))
+        XCTAssertTrue(itemNames.contains("Tomato"))
+    }
+
+    func testMultiItemRequestWithMixedVerifiedAndClarificationPreservesVerifiedItems() {
+        let json = """
+        ```json
+        {
+          "thought": "Potato is verified, oil needs variety choice.",
+          "message": "Added 2 kg Potato. Which oil would you like? We have Mustard Oil and Sunflower Oil.",
+          "items": {
+            "verified": {
+              "Potato": {
+                "quantity": 2.0,
+                "unit": "kg",
+                "unitPrice": 30.0
+              }
+            },
+            "rejected": {},
+            "needClarification": {
+              "oil": {
+                "quantity": 1.0,
+                "unit": "L",
+                "options": ["Mustard Oil", "Sunflower Oil"],
+                "reason": "Multiple oil varieties available"
+              }
+            }
+          }
+        }
+        ```
+        """
+
+        let catalog = [
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
+        ]
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: catalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato aur 1 litre tel"
+        )
+
+        XCTAssertEqual(parsed.status, .needsClarification)
+        // Verified items MUST NOT be nil or discarded
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.itemName, "Potato")
+        XCTAssertNotNil(parsed.billSummary)
+        XCTAssertEqual(parsed.billSummary?.subtotal, 60.0)
+        XCTAssertNotNil(parsed.pendingClarification)
+        XCTAssertTrue(parsed.pendingClarification?.candidateNames.contains("Mustard Oil") == true)
+        XCTAssertTrue(parsed.canUndo)
+    }
+
+    func testShortenedMultiItemNamesMatchCatalogCorrectly() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        let parsedAtta = AgentParsedItem(itemName: "Atta", quantity: 5.0, unit: "kg")
+        let parsedMaggi = AgentParsedItem(itemName: "Maggi", quantity: 2.0, unit: "packet")
+        let parsedMilk = AgentParsedItem(itemName: "Milk", quantity: 1.0, unit: "litre")
+        let parsedRice = AgentParsedItem(itemName: "Rice", quantity: 2.0, unit: "kg")
+
+        let billedAtta = BillCalculator.computeSingleItem(parsed: parsedAtta, catalog: fullCatalog)
+        let billedMaggi = BillCalculator.computeSingleItem(parsed: parsedMaggi, catalog: fullCatalog)
+        let billedMilk = BillCalculator.computeSingleItem(parsed: parsedMilk, catalog: fullCatalog)
+        let billedRice = BillCalculator.computeSingleItem(parsed: parsedRice, catalog: fullCatalog)
+
+        XCTAssertEqual(billedAtta.name, "Atta (Wheat Flour)")
+        XCTAssertEqual(billedAtta.unitPrice, 42.0)
+        XCTAssertEqual(billedMaggi.name, "Maggi Noodles")
+        XCTAssertEqual(billedMaggi.unitPrice, 14.0)
+        XCTAssertEqual(billedMilk.name, "Cow Milk")
+        XCTAssertEqual(billedMilk.unitPrice, 64.0)
+        XCTAssertEqual(billedRice.name, "Basmati Rice")
+        XCTAssertEqual(billedRice.unitPrice, 110.0)
+    }
+
+    func testAgentAtomBillingOutputConvertsMultipleItemsProperly() {
+        var container = AgentAtomItemsContainer()
+        container.verified["Potato"] = AgentAtomVerifiedItem(quantity: 2.0, unit: "kg", unitPrice: 30.0)
+        container.verified["Tomato"] = AgentAtomVerifiedItem(quantity: 1.0, unit: "kg", unitPrice: 40.0)
+        container.rejected["salt"] = AgentAtomRejectedItem(reason: "Not in store catalog")
+        container.needClarification["oil"] = AgentAtomClarificationItem(quantity: 1.0, unit: "L", options: ["Mustard Oil", "Sunflower Oil"], reason: "Multiple options")
+
+        let output = AgentAtomBillingOutput(
+            thought: "Multi-item output test",
+            message: "Added items with 1 unlisted and 1 ambiguous",
+            items: container
+        )
+
+        let payload = output.toAgentJsonPayload()
+        XCTAssertEqual(payload.items?.count, 2)
+        XCTAssertEqual(payload.rejected?.count, 1)
+        XCTAssertEqual(payload.needClarification?.count, 1)
+        XCTAssertEqual(payload.status, "needs_clarification")
     }
 }

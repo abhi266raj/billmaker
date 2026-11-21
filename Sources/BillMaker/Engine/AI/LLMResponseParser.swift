@@ -231,14 +231,29 @@ public struct LLMResponseParser {
                 itemsParsedCount: 0
             )
 
+            let verifiedItems: [AgentParsedItem]? = (payload.items?.isEmpty == false) ? payload.items : nil
+            let summary: BillSummary? = {
+                if let v = verifiedItems, !v.isEmpty {
+                    return BillCalculator.computeBill(
+                        from: v,
+                        catalog: catalog,
+                        currencySymbol: settings.currencySymbol,
+                        taxRatePercent: settings.taxRatePercent
+                    )
+                }
+                return nil
+            }()
+
             return AgentMessage(
                 role: .agent,
                 text: payload.message,
                 thoughtProcess: thought ?? payload.thought ?? "Clarification requested for ambiguous item.",
                 rawJsonOutput: extractedJson,
                 status: .needsClarification,
+                billSummary: summary,
+                parsedItems: verifiedItems,
                 pendingClarification: pendingClarification,
-                canUndo: false
+                canUndo: verifiedItems != nil
             )
         }
 
@@ -262,10 +277,26 @@ public struct LLMResponseParser {
                     promptMsg = "Which oil would you like? We have \(desc)."
                 }
 
+                let nonOilItems: [AgentParsedItem] = (payload.items ?? []).filter {
+                    !$0.itemName.localizedCaseInsensitiveContains("oil")
+                }
+                let verifiedItems: [AgentParsedItem]? = nonOilItems.isEmpty ? nil : nonOilItems
+                let summary: BillSummary? = {
+                    if let v = verifiedItems, !v.isEmpty {
+                        return BillCalculator.computeBill(
+                            from: v,
+                            catalog: catalog,
+                            currencySymbol: settings.currencySymbol,
+                            taxRatePercent: settings.taxRatePercent
+                        )
+                    }
+                    return nil
+                }()
+
                 let pending = PendingClarification(
                     query: userInput,
-                    quantity: payload.items?.first?.quantity ?? 1.0,
-                    unit: payload.items?.first?.unit ?? "L",
+                    quantity: payload.items?.first(where: { $0.itemName.localizedCaseInsensitiveContains("oil") })?.quantity ?? 1.0,
+                    unit: payload.items?.first(where: { $0.itemName.localizedCaseInsensitiveContains("oil") })?.unit ?? "L",
                     candidateNames: oilCandidates
                 )
 
@@ -276,7 +307,7 @@ public struct LLMResponseParser {
                     outcome: .clarification,
                     rootCauseAnalysis: "Generic oil query converted to clarification: \(promptMsg)",
                     executionMode: settings.executionMode.rawValue,
-                    itemsParsedCount: 0
+                    itemsParsedCount: verifiedItems?.count ?? 0
                 )
 
                 return AgentMessage(
@@ -285,8 +316,10 @@ public struct LLMResponseParser {
                     thoughtProcess: thought ?? "Customer requested generic oil; asking clarification between catalog oils.",
                     rawJsonOutput: extractedJson,
                     status: .needsClarification,
+                    billSummary: summary,
+                    parsedItems: verifiedItems,
                     pendingClarification: pending,
-                    canUndo: false
+                    canUndo: verifiedItems != nil
                 )
             }
         }
