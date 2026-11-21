@@ -2,13 +2,18 @@ name: BillMaker
 options:
   bundleIdPrefix: com.billmaker
   deploymentTarget:
-    macOS: "13.0"
+    macOS: "14.0"
   xcodeVersion: "15.0"
+
+packages:
+  AgentAtom:
+    url: https://github.com/abhi266raj/AgentAtom.git
+    exactVersion: 0.1.0
 
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
     PRODUCT_NAME: "BillMaker"
     ENABLE_USER_SCRIPT_SANDBOXING: false
 
@@ -16,11 +21,14 @@ targets:
   BillMaker:
     type: application
     platform: macOS
-    deploymentTarget: "13.0"
+    deploymentTarget: "14.0"
     sources:
       - path: Sources/BillMaker
         excludes:
           - Info.plist
+    dependencies:
+      - package: AgentAtom
+        product: AgentAtomSource
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.billmaker.app
@@ -34,6 +42,7 @@ targets:
   BillMakerTests:
     type: bundle.unit-test
     platform: macOS
+    deploymentTarget: "14.0"
     sources:
       - path: Tests/BillMakerTests
     dependencies:

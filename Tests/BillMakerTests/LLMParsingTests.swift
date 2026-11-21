@@ -556,4 +556,189 @@ final class LLMParsingTests: XCTestCase {
         )
         XCTAssertFalse(bill.items.isEmpty)
     }
+
+    func testUnifiedObjectItemsFormatWithVerifiedObjectDictionary() {
+        let json = """
+        ```json
+        {
+          "thought": "Customer requested 2kg potato.",
+          "message": "Added 2 kg Potato.",
+          "items": {
+            "verified": {
+              "Potato": {
+                "quantity": 2.0,
+                "unit": "kg",
+                "unitPrice": 30.0
+              }
+            },
+            "rejected": {},
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato"
+        )
+
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.itemName, "Potato")
+        XCTAssertEqual(parsed.parsedItems?.first?.quantity, 2.0)
+        XCTAssertEqual(parsed.parsedItems?.first?.unit, "kg")
+        XCTAssertNotNil(parsed.billSummary)
+    }
+
+    func testUnifiedObjectItemsFormatWithRejectedObjectDictionary() {
+        let json = """
+        ```json
+        {
+          "thought": "Salt is not in store catalog.",
+          "message": "Item 'salt' not found in store catalog.",
+          "items": {
+            "verified": {},
+            "rejected": {
+              "salt": {
+                "reason": "Not in store catalog"
+              }
+            },
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "1kg salt"
+        )
+
+        XCTAssertEqual(parsed.status, .notFound)
+        XCTAssertTrue(parsed.text.contains("salt"))
+        XCTAssertNil(parsed.parsedItems)
+    }
+
+    func testUnifiedObjectItemsFormatWithNeedClarificationObjectDictionary() {
+        let json = """
+        ```json
+        {
+          "thought": "Customer asked for generic oil, multiple oils exist.",
+          "message": "Which oil would you like? We have Mustard Oil and Sunflower Oil.",
+          "items": {
+            "verified": {},
+            "rejected": {},
+            "needClarification": {
+              "oil": {
+                "quantity": 1.0,
+                "unit": "L",
+                "options": ["Mustard Oil", "Sunflower Oil"],
+                "reason": "Multiple matching options in catalog"
+              }
+            }
+          }
+        }
+        ```
+        """
+
+        let catalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 140.0)
+        ]
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: catalog,
+            settings: .defaultSettings,
+            userInput: "1 litre oil"
+        )
+
+        XCTAssertEqual(parsed.status, .needsClarification)
+        XCTAssertNotNil(parsed.pendingClarification)
+        XCTAssertTrue(parsed.pendingClarification?.candidateNames.contains("Mustard Oil") == true)
+        XCTAssertTrue(parsed.pendingClarification?.candidateNames.contains("Sunflower Oil") == true)
+    }
+
+    func testUnifiedObjectItemsFormatWithSingleItemObjects() {
+        let json = """
+        ```json
+        {
+          "thought": "Customer requested 2kg potato.",
+          "message": "Added 2 kg Potato.",
+          "items": {
+            "verified": {
+              "itemName": "Potato",
+              "quantity": 2.0,
+              "unit": "kg",
+              "unitPrice": 30.0
+            },
+            "rejected": {},
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato"
+        )
+
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.itemName, "Potato")
+        XCTAssertEqual(parsed.parsedItems?.first?.quantity, 2.0)
+    }
+
+    func testMixedVerifiedAndRejectedObjects() {
+        let json = """
+        ```json
+        {
+          "thought": "Potato is in catalog, salt is not.",
+          "message": "Added 2 kg Potato.",
+          "items": {
+            "verified": {
+              "Potato": {
+                "quantity": 2.0,
+                "unit": "kg",
+                "unitPrice": 30.0
+              }
+            },
+            "rejected": {
+              "salt": "Not in store catalog"
+            },
+            "needClarification": {}
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato aur 1 packet salt"
+        )
+
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.itemName, "Potato")
+        XCTAssertTrue(parsed.text.contains("salt") || parsed.thoughtProcess?.contains("salt") == true)
+    }
+
+    func testAgentAtomBillingSpecConstruction() {
+        let input = BillingAgentInput(request: "2kg potato", catalogSummary: "- Potato: ₹30/kg", currencySymbol: "₹")
+        let spec = AgentAtomBillingSpec(input: input, instructions: "System instructions")
+        XCTAssertEqual(AgentAtomBillingSpec.identity.id, "billmaker-agent")
+        XCTAssertEqual(AgentAtomBillingSpec.identity.name, "BillMakerBillingAgent")
+        XCTAssertEqual(AgentAtomBillingSpec.role, "Fast retail grocery store billing assistant")
+        XCTAssertFalse(spec.inputJSON.rawValue.isEmpty)
+    }
 }

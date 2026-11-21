@@ -71,9 +71,14 @@ public struct LLMResponseParser {
             )
         }
 
-        // 3a. Item Not Found: Status "not_found" or message stating item was not found in catalog
+        // 3a. Item Not Found: Status "not_found", or payload contains rejected items with empty verified
+        let hasVerifiedItems = !(payload.items?.isEmpty ?? true)
+        let hasRejectedItems = !(payload.rejected?.isEmpty ?? true)
+        let hasClarificationItems = !(payload.needClarification?.isEmpty ?? true)
+
         let isNotFound = payload.status == "not_found"
             || payload.status == "item_not_found"
+            || (!hasVerifiedItems && hasRejectedItems)
             || (payload.items?.isEmpty == true && (
                 payload.message.localizedCaseInsensitiveContains("not found") ||
                 payload.message.localizedCaseInsensitiveContains("not available") ||
@@ -85,7 +90,15 @@ public struct LLMResponseParser {
             ))
 
         if isNotFound {
-            let msg = payload.message.isEmpty ? "No match found. Item not found in the store catalog." : payload.message
+            let msg: String
+            if !payload.message.isEmpty {
+                msg = payload.message
+            } else if let firstRej = payload.rejected?.first {
+                let reason = firstRej.reason.map { " (\($0))" } ?? ""
+                msg = "No match found. Item '\(firstRej.item)'\(reason) was not found in the store catalog."
+            } else {
+                msg = "No match found. Item not found in the store catalog."
+            }
             let thoughtDesc = thought ?? payload.thought ?? "Requested item is not available in the store catalog."
 
             ParsingDiagnosticsLogger.shared.log(
@@ -108,8 +121,9 @@ public struct LLMResponseParser {
             )
         }
 
-        // 3b. Clarification check: Status "needs_clarification" or empty items with a clarifying question/confirmation
+        // 3b. Clarification check: Status "needs_clarification", or needClarification present with empty verified, or empty items with a clarifying question/confirmation
         let isClarificationRequest = payload.status == "needs_clarification"
+            || (!hasVerifiedItems && hasClarificationItems)
             || (payload.items?.isEmpty == true && (
                 payload.message.contains("?") ||
                 payload.message.localizedCaseInsensitiveContains("confirm") ||
@@ -177,6 +191,9 @@ public struct LLMResponseParser {
             }
 
             var candidateNames: [String] = {
+                if let firstNeed = payload.needClarification?.first, !firstNeed.options.isEmpty {
+                    return firstNeed.options
+                }
                 if let existing = payload.pendingClarification?.candidateNames, !existing.isEmpty {
                     return existing
                 }
@@ -318,6 +335,10 @@ public struct LLMResponseParser {
 
         // 3d. False Match / Hallucination Prevention & Mixed Multi-Item Matching
         var partialNote: String? = nil
+        if let rejected = payload.rejected, !rejected.isEmpty {
+            let names = rejected.map(\.item).joined(separator: ", ")
+            partialNote = "Note: Requested item(s) '\(names)' not in store catalog and excluded from bill."
+        }
         if !userInput.isEmpty {
             var validItems: [AgentParsedItem] = []
             var droppedFalseItems: [String] = []
@@ -491,6 +512,8 @@ public struct LLMResponseParser {
         // 3. Try generic JSONSerialization dictionary inspection
         if let dict = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] {
             var extractedItems: [AgentParsedItem] = []
+            var extractedRejected: [AgentRejectedItem] = []
+            var extractedClarification: [AgentClarificationNeedItem] = []
 
             for key in ["items", "products", "order", "item_list", "billedItems"] {
                 if let rawList = dict[key] as? [[String: Any]] {
@@ -498,6 +521,80 @@ public struct LLMResponseParser {
                         if let itemData = try? JSONSerialization.data(withJSONObject: itemDict),
                            let parsedItem = try? JSONDecoder().decode(AgentParsedItem.self, from: itemData) {
                             extractedItems.append(parsedItem)
+                        }
+                    }
+                    break
+                } else if let nestedDict = dict[key] as? [String: Any] {
+                    // Inspect "verified" container
+                    for vKey in ["verified", "accepted", "ready", "items"] {
+                        if let vList = nestedDict[vKey] as? [[String: Any]] {
+                            for itemDict in vList {
+                                if let itemData = try? JSONSerialization.data(withJSONObject: itemDict),
+                                   let parsedItem = try? JSONDecoder().decode(AgentParsedItem.self, from: itemData) {
+                                    extractedItems.append(parsedItem)
+                                }
+                            }
+                        } else if let vObj = nestedDict[vKey] as? [String: Any] {
+                            for (subKey, subVal) in vObj {
+                                if var subDict = subVal as? [String: Any] {
+                                    if subDict["itemName"] == nil && subDict["name"] == nil {
+                                        subDict["itemName"] = subKey
+                                    }
+                                    if let subData = try? JSONSerialization.data(withJSONObject: subDict),
+                                       let parsed = try? JSONDecoder().decode(AgentParsedItem.self, from: subData) {
+                                        extractedItems.append(parsed)
+                                    }
+                                }
+                            }
+                            if extractedItems.isEmpty,
+                               let itemData = try? JSONSerialization.data(withJSONObject: vObj),
+                               let parsed = try? JSONDecoder().decode(AgentParsedItem.self, from: itemData) {
+                                extractedItems.append(parsed)
+                            }
+                        }
+                    }
+
+                    // Inspect "rejected" container
+                    for rKey in ["rejected", "unlisted", "not_found"] {
+                        if let rList = nestedDict[rKey] as? [[String: Any]] {
+                            for rDict in rList {
+                                if let rData = try? JSONSerialization.data(withJSONObject: rDict),
+                                   let parsed = try? JSONDecoder().decode(AgentRejectedItem.self, from: rData) {
+                                    extractedRejected.append(parsed)
+                                }
+                            }
+                        } else if let rObj = nestedDict[rKey] as? [String: Any] {
+                            for (subKey, subVal) in rObj {
+                                if let subDict = subVal as? [String: Any],
+                                   let subData = try? JSONSerialization.data(withJSONObject: subDict),
+                                   var parsed = try? JSONDecoder().decode(AgentRejectedItem.self, from: subData) {
+                                    if parsed.item.isEmpty { parsed.item = subKey }
+                                    extractedRejected.append(parsed)
+                                } else if let strReason = subVal as? String {
+                                    extractedRejected.append(AgentRejectedItem(item: subKey, reason: strReason))
+                                }
+                            }
+                        }
+                    }
+
+                    // Inspect "needClarification" container
+                    for cKey in ["needClarification", "need_clarification", "needsClarification"] {
+                        if let cList = nestedDict[cKey] as? [[String: Any]] {
+                            for cDict in cList {
+                                if let cData = try? JSONSerialization.data(withJSONObject: cDict),
+                                   let parsed = try? JSONDecoder().decode(AgentClarificationNeedItem.self, from: cData) {
+                                    extractedClarification.append(parsed)
+                                }
+                            }
+                        } else if let cObj = nestedDict[cKey] as? [String: Any] {
+                            for (subKey, subVal) in cObj {
+                                if let subDict = subVal as? [String: Any],
+                                   let subData = try? JSONSerialization.data(withJSONObject: subDict),
+                                   var parsed = try? JSONDecoder().decode(AgentClarificationNeedItem.self, from: subData) {
+                                    if parsed.item.isEmpty { parsed.item = subKey }
+                                    extractedClarification.append(parsed)
+                                }
+                            }
                         }
                     }
                     break
@@ -512,11 +609,21 @@ public struct LLMResponseParser {
                 }
             }
 
-            if !extractedItems.isEmpty {
-                let status = (dict["status"] as? String) ?? "ready"
+            if !extractedItems.isEmpty || !extractedRejected.isEmpty || !extractedClarification.isEmpty {
+                let status = (dict["status"] as? String) ?? (extractedClarification.isEmpty ? (extractedItems.isEmpty ? "not_found" : "ready") : "needs_clarification")
                 let message = (dict["message"] as? String) ?? (dict["response"] as? String) ?? ""
                 let thought = dict["thought"] as? String
-                return (AgentJsonPayload(status: status, message: message, thought: thought, items: extractedItems), nil)
+                return (
+                    AgentJsonPayload(
+                        status: status,
+                        message: message,
+                        thought: thought,
+                        items: extractedItems,
+                        rejected: extractedRejected.isEmpty ? nil : extractedRejected,
+                        needClarification: extractedClarification.isEmpty ? nil : extractedClarification
+                    ),
+                    nil
+                )
             }
         }
 

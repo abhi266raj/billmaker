@@ -31,10 +31,12 @@
 		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
 		ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */; };
+		ACE6B4331BE81F72483C6A8B /* AgentAtomSource in Frameworks */ = {isa = PBXBuildFile; productRef = 5072CD1B503CC5B4B038E1FC /* AgentAtomSource */; };
 		B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */; };
 		BC08531B5C8ABD428CF7C672 /* AppleFMAgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */; };
 		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
 		C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */; };
+		C7C364D95D8AADCAD749C934 /* AgentAtomBillingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */; };
 		CA18DA0E608F44061C837C30 /* AgentResponseBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */; };
 		CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */; };
 		D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5214870783E7496732F39D /* AgentMessage.swift */; };
@@ -73,6 +75,7 @@
 		46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		4D5214870783E7496732F39D /* AgentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMessage.swift; sourceTree = "<group>"; };
 		5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMBackgroundServer.swift; sourceTree = "<group>"; };
+		664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAtomBillingEngine.swift; sourceTree = "<group>"; };
 		6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMAgentEngine.swift; sourceTree = "<group>"; };
 		6E3099402FD2BE17F77B6437 /* ReceiptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptService.swift; sourceTree = "<group>"; };
 		6F11597044C462B6F9622EB6 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
@@ -99,6 +102,17 @@
 		F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionTests.swift; sourceTree = "<group>"; };
 		FB52B5B1E55F4DFF67DF076D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		925EE38D458DEA329B3F06BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ACE6B4331BE81F72483C6A8B /* AgentAtomSource in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0360EA361E3C7487316FD692 /* Speech */ = {
@@ -243,6 +257,7 @@
 		B046F741753FE5B0A90B1A97 /* AI */ = {
 			isa = PBXGroup;
 			children = (
+				664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */,
 				6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */,
 				5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */,
 				1B10CC35072B03B55EF3EF41 /* AppleFMServerManager.swift */,
@@ -302,6 +317,7 @@
 			buildPhases = (
 				08E30B7203DBBF836C0B5595 /* Sources */,
 				E5C135A8C008285FFAAE02E1 /* Resources */,
+				925EE38D458DEA329B3F06BF /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -309,6 +325,7 @@
 			);
 			name = BillMaker;
 			packageProductDependencies = (
+				5072CD1B503CC5B4B038E1FC /* AgentAtomSource */,
 			);
 			productName = BillMaker;
 			productReference = F21B9C29F9491CCCC3561B57 /* BillMaker.app */;
@@ -351,6 +368,9 @@
 			);
 			mainGroup = 0C8648225AE50838EC9744BD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1FA68E6660CD2A4105DD3C58 /* XCRemoteSwiftPackageReference "AgentAtom" */,
+			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
@@ -377,6 +397,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C7C364D95D8AADCAD749C934 /* AgentAtomBillingEngine.swift in Sources */,
 				702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */,
 				0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */,
 				D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */,
@@ -445,6 +466,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
@@ -464,7 +486,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
 				SDKROOT = macosx;
 			};
@@ -516,7 +538,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = BillMaker;
@@ -537,6 +559,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
@@ -556,7 +579,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
 				SDKROOT = macosx;
 			};
@@ -614,7 +637,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -657,6 +680,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1FA68E6660CD2A4105DD3C58 /* XCRemoteSwiftPackageReference "AgentAtom" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/abhi266raj/AgentAtom.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5072CD1B503CC5B4B038E1FC /* AgentAtomSource */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1FA68E6660CD2A4105DD3C58 /* XCRemoteSwiftPackageReference "AgentAtom" */;
+			productName = AgentAtomSource;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 979658872143CDA5261879DB /* Project object */;
 }
