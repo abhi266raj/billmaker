@@ -36,6 +36,10 @@ public final class AppleFMAgentEngine: AgentEngine, @unchecked Sendable {
                     currencySymbol: settings.currencySymbol
                 )
             } else {
+                let isClarificationPending = conversationHistory.last(where: { $0.role == .agent })?.status == .needsClarification
+                if !isClarificationPending {
+                    AppleFMBackgroundServer.shared.reset(catalog: catalog, currencySymbol: settings.currencySymbol)
+                }
                 AppleFMBackgroundServer.shared.start(catalog: catalog, currencySymbol: settings.currencySymbol)
                 content = try await AppleFMBackgroundServer.shared.processDirect(
                     userInput: userInput,

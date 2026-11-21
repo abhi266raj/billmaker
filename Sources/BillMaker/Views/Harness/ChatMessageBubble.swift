@@ -4,16 +4,19 @@ public struct ChatMessageBubble: View {
     let message: AgentMessage
     let onInspectJson: (String) -> Void
     var onUndo: (() -> Void)? = nil
+    var onSelectOption: ((String) -> Void)? = nil
     @State private var isThoughtExpanded: Bool = true
 
     public init(
         message: AgentMessage,
         onInspectJson: @escaping (String) -> Void,
-        onUndo: (() -> Void)? = nil
+        onUndo: (() -> Void)? = nil,
+        onSelectOption: ((String) -> Void)? = nil
     ) {
         self.message = message
         self.onInspectJson = onInspectJson
         self.onUndo = onUndo
+        self.onSelectOption = onSelectOption
     }
 
     public var body: some View {
@@ -159,6 +162,39 @@ public struct ChatMessageBubble: View {
                                     .help("Undo this unit-corrected item addition")
                                 }
                             }
+                        }
+
+                        // Clarification Option Pills (if clarification is needed)
+                        if let clarification = message.pendingClarification, !clarification.candidateNames.isEmpty {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Select an option:")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(.secondary)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 6) {
+                                        ForEach(clarification.candidateNames, id: \.self) { candidate in
+                                            Button(action: { onSelectOption?(candidate) }) {
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "hand.tap.fill")
+                                                        .font(.caption2)
+                                                    Text(candidate)
+                                                        .font(.caption.weight(.medium))
+                                                }
+                                                .padding(.horizontal, 10)
+                                                .padding(.vertical, 5)
+                                                .background(Color.orange.opacity(0.12))
+                                                .foregroundColor(.orange)
+                                                .cornerRadius(8)
+                                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.orange.opacity(0.3), lineWidth: 1))
+                                            }
+                                            .buttonStyle(.plain)
+                                            .help("Select \(candidate)")
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.top, 2)
                         }
 
                         // Status & JSON inspect button row

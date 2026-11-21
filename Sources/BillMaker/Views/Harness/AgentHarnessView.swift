@@ -126,6 +126,9 @@ public struct AgentHarnessView: View {
                             },
                             onUndo: {
                                 appState.undo()
+                            },
+                            onSelectOption: { option in
+                                appState.processInput(option)
                             }
                         )
                         .id(message.id)

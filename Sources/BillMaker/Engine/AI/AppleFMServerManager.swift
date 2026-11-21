@@ -91,13 +91,19 @@ public final class AppleFMServerManager: @unchecked Sendable {
             ["role": "system", "content": systemPrompt]
         ]
 
-        // Keep session fast, isolated, and focused: append only the immediate prior turn if relevant,
-        // strictly ensuring assistant messages are JSON so the model never drifts to conversational text.
-        let validHistory = conversationHistory.filter { $0.status != .info && $0.role != .system }
-        if let lastAgentMsg = validHistory.last(where: { $0.role == .agent }),
-           let lastUserMsg = validHistory.last(where: { $0.role == .user && $0.text != userInput }) {
+        // Optimization: Live billing items are stateless and accumulated in Swift.
+        // We only retain conversation history if the previous turn requested a clarification
+        // (so the customer's reply resolves the ambiguous item). Otherwise, each item addition starts with fresh context.
+        let isClarificationPending: Bool = {
+            guard let lastMsg = conversationHistory.last(where: { $0.role == .agent }) else { return false }
+            return lastMsg.status == .needsClarification || lastMsg.pendingClarification != nil
+        }()
+
+        if isClarificationPending,
+           let lastAgentMsg = conversationHistory.last(where: { $0.role == .agent }),
+           let lastUserMsg = conversationHistory.last(where: { $0.role == .user && $0.text != userInput }) {
             messages.append(["role": "user", "content": lastUserMsg.text])
-            let assistantPayload = lastAgentMsg.rawJsonOutput ?? "```json\n{\"status\":\"ready\",\"message\":\"\(lastAgentMsg.text)\"}\n```"
+            let assistantPayload = lastAgentMsg.rawJsonOutput ?? "```json\n{\"status\":\"needs_clarification\",\"message\":\"\(lastAgentMsg.text)\"}\n```"
             messages.append(["role": "assistant", "content": assistantPayload])
         }
         messages.append(["role": "user", "content": userInput])
