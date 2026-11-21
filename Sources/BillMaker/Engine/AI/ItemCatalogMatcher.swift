@@ -250,4 +250,82 @@ public struct ItemCatalogMatcher {
 
         return nil
     }
+
+    /// Extracts quantity and unit for a catalog item from user input text.
+    /// Handles subunit scaling (grams -> kg, ml -> litre, pieces -> dozen) and colloquial terms.
+    public static func extractQuantityAndUnit(
+        for item: Item,
+        from userInput: String
+    ) -> (quantity: Double, unit: String) {
+        let normalized = normalizeColloquials(userInput.lowercased())
+        let itemAliases = aliases(for: item.name)
+
+        // 1. Regex to find quantity and unit preceding or surrounding the item alias
+        // e.g. "500g paneer", "500 g paneer", "0.5kg paneer", "3 eggs", "1 pkt maggi"
+        for alias in itemAliases where alias.count >= 2 {
+            let escapedAlias = NSRegularExpression.escapedPattern(for: alias)
+            let pattern = "(\\d+(?:\\.\\d+)?)\\s*(kg|kilo|kilos|kilogram|g|gm|gram|grams|l|ltr|litre|litres|liter|liters|ml|packet|packets|pkt|pkts|piece|pieces|pc|pcs|dozen|doz)?\\s*(?:of\\s+)?(?:\\b|(?=[^a-z0-9]))" + escapedAlias
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                let nsStr = normalized as NSString
+                if let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: nsStr.length)) {
+                    let qtyStr = nsStr.substring(with: match.range(at: 1))
+                    let rawQty = Double(qtyStr) ?? 1.0
+
+                    var rawUnit = ""
+                    if match.numberOfRanges > 2 && match.range(at: 2).location != NSNotFound {
+                        rawUnit = nsStr.substring(with: match.range(at: 2)).lowercased()
+                    }
+
+                    return scaleUnit(quantity: rawQty, rawUnit: rawUnit, catalogUnitType: item.unitType)
+                }
+            }
+
+            // Also check following pattern: alias + number + optional unit (e.g. "eggs 3", "maggi 1 packet")
+            let followingPattern = escapedAlias + "\\s+(\\d+(?:\\.\\d+)?)\\s*(kg|kilo|kilos|kilogram|g|gm|gram|grams|l|ltr|litre|litres|liter|liters|ml|packet|packets|pkt|pkts|piece|pieces|pc|pcs|dozen|doz)?"
+            if let regex = try? NSRegularExpression(pattern: followingPattern, options: .caseInsensitive) {
+                let nsStr = normalized as NSString
+                if let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: nsStr.length)) {
+                    let qtyStr = nsStr.substring(with: match.range(at: 1))
+                    let rawQty = Double(qtyStr) ?? 1.0
+
+                    var rawUnit = ""
+                    if match.numberOfRanges > 2 && match.range(at: 2).location != NSNotFound {
+                        rawUnit = nsStr.substring(with: match.range(at: 2)).lowercased()
+                    }
+
+                    return scaleUnit(quantity: rawQty, rawUnit: rawUnit, catalogUnitType: item.unitType)
+                }
+            }
+        }
+
+        return (1.0, item.unitType.shortLabel)
+    }
+
+    private static func scaleUnit(quantity: Double, rawUnit: String, catalogUnitType: UnitType) -> (Double, String) {
+        if catalogUnitType == .kg {
+            if rawUnit == "g" || rawUnit == "gm" || rawUnit == "gram" || rawUnit == "grams" {
+                return (quantity / 1000.0, "kg")
+            }
+            return (quantity, "kg")
+        }
+        if catalogUnitType == .litre {
+            if rawUnit == "ml" || rawUnit == "millilitre" {
+                return (quantity / 1000.0, "L")
+            }
+            return (quantity, "L")
+        }
+        if catalogUnitType == .dozen {
+            if rawUnit == "pc" || rawUnit == "piece" || rawUnit == "pcs" {
+                return (quantity / 12.0, "dozen")
+            }
+            return (quantity, "dozen")
+        }
+        if catalogUnitType == .piece {
+            return (quantity, "pc")
+        }
+        if catalogUnitType == .packet {
+            return (quantity, "pkt")
+        }
+        return (quantity, catalogUnitType.shortLabel)
+    }
 }

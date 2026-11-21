@@ -51,7 +51,7 @@ public struct LLMResponseParser {
         }
 
         // 3. Strict Requirement: Output from LLM must be valid JSON; missing JSON is an error
-        guard let payload = parsedPayload else {
+        guard var payload = parsedPayload else {
             let rootCause = lastDecodingError ?? "No valid JSON structure or code fence found in model output."
             ParsingDiagnosticsLogger.shared.log(
                 userInput: userInput,
@@ -72,6 +72,9 @@ public struct LLMResponseParser {
                 canUndo: false
             )
         }
+
+        // Guardian Business Rules: Reconcile payload against store catalog & unit divisibility
+        reconcilePayloadWithBusinessRules(payload: &payload, catalog: catalog, userInput: userInput)
 
         // 3a. Item Not Found: Status "not_found", or payload contains rejected items with empty verified
         let hasVerifiedItems = !(payload.items?.isEmpty ?? true)
@@ -846,5 +849,135 @@ public struct LLMResponseParser {
         }
 
         return items
+    }
+
+    /// Reconciles LLM items payload with ground-truth catalog rules and unit divisibility:
+    /// - Weight (kg, g) and volume (litre, ml) are divisible into fractions (e.g. 500g paneer = 0.5 kg).
+    ///   Unambiguous single-catalog items must NEVER remain in needClarification.
+    /// - Items existing in the store catalog (e.g. Eggs, Maggi Noodles) must NEVER be rejected.
+    /// - Multi-item requests in user input are fully scanned so zero items are omitted.
+    private static func reconcilePayloadWithBusinessRules(
+        payload: inout AgentJsonPayload,
+        catalog: [Item],
+        userInput: String
+    ) {
+        var verifiedItems = payload.items ?? []
+        var rejectedItems = payload.rejected ?? []
+        var clarificationItems = payload.needClarification ?? []
+        var modified = false
+
+        // 1. Reconcile needClarification:
+        // Divisible units (kg, litre) or unambiguous items (single catalog match) must NEVER be in needClarification!
+        var remainingClarification: [AgentClarificationNeedItem] = []
+        for clarItem in clarificationItems {
+            let itemName = clarItem.item
+            let cleanQuery = itemName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Skip genuine generic queries like "oil" or "tel" where multiple oils exist
+            if ItemCatalogMatcher.isGenericOilQuery(cleanQuery) {
+                remainingClarification.append(clarItem)
+                continue
+            }
+
+            // Find matching catalog items
+            let matches = catalog.filter { cat in
+                cat.name.lowercased() == cleanQuery ||
+                cat.name.localizedCaseInsensitiveContains(cleanQuery) ||
+                cleanQuery.localizedCaseInsensitiveContains(cat.name) ||
+                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
+                    alias.count >= 3 && (cleanQuery == alias || cleanQuery.contains(alias) || alias.contains(cleanQuery))
+                }
+            }
+
+            // If exactly 1 catalog item matches (e.g. Paneer) or candidate options point to 1 item
+            let singleOptionMatch: Item? = {
+                if clarItem.options.count == 1 {
+                    return catalog.first(where: { $0.name.lowercased() == clarItem.options[0].lowercased() })
+                }
+                return nil
+            }()
+
+            if matches.count == 1 || singleOptionMatch != nil {
+                let catItem = singleOptionMatch ?? matches.first!
+
+                var qty = clarItem.quantity
+                var unit = clarItem.unit
+                if qty == 1.0 && (unit.isEmpty || unit == "pc") {
+                    let extracted = ItemCatalogMatcher.extractQuantityAndUnit(for: catItem, from: userInput)
+                    qty = extracted.quantity
+                    unit = extracted.unit
+                }
+
+                // If already in verified, don't duplicate
+                if !verifiedItems.contains(where: { $0.itemName.lowercased() == catItem.name.lowercased() }) {
+                    verifiedItems.append(
+                        AgentParsedItem(
+                            itemId: catItem.id.uuidString,
+                            itemName: catItem.name,
+                            quantity: qty,
+                            unit: unit.isEmpty ? catItem.unitType.shortLabel : unit,
+                            unitPrice: catItem.pricePerUnit
+                        )
+                    )
+                }
+                modified = true
+            } else {
+                remainingClarification.append(clarItem)
+            }
+        }
+        clarificationItems = remainingClarification
+
+        // 2. Reconcile rejected:
+        // Items in store catalog MUST NEVER be rejected (e.g. eggs, maggi)
+        var remainingRejected: [AgentRejectedItem] = []
+        for rej in rejectedItems {
+            let rejName = rej.item.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Check if rejected item actually exists in catalog
+            if let catItem = catalog.first(where: { cat in
+                cat.name.lowercased() == rejName ||
+                cat.name.localizedCaseInsensitiveContains(rejName) ||
+                rejName.localizedCaseInsensitiveContains(cat.name) ||
+                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
+                    alias.count >= 3 && (rejName == alias || rejName.contains(alias) || alias.contains(rejName))
+                }
+            }) {
+                // False rejection! Rescue it from rejected and promote to verified!
+                let extracted = ItemCatalogMatcher.extractQuantityAndUnit(for: catItem, from: userInput)
+                if !verifiedItems.contains(where: { $0.itemName.lowercased() == catItem.name.lowercased() }) {
+                    verifiedItems.append(
+                        AgentParsedItem(
+                            itemId: catItem.id.uuidString,
+                            itemName: catItem.name,
+                            quantity: extracted.quantity,
+                            unit: extracted.unit,
+                            unitPrice: catItem.pricePerUnit
+                        )
+                    )
+                }
+                modified = true
+            } else {
+                remainingRejected.append(rej)
+            }
+        }
+        rejectedItems = remainingRejected
+
+        // Apply back to payload if modified
+        if modified {
+            payload.items = verifiedItems.isEmpty ? nil : verifiedItems
+            payload.rejected = rejectedItems.isEmpty ? nil : rejectedItems
+            payload.needClarification = clarificationItems.isEmpty ? nil : clarificationItems
+
+            if !verifiedItems.isEmpty && clarificationItems.isEmpty {
+                payload.status = "ready"
+                let desc = verifiedItems.map {
+                    let qtyStr = $0.quantity.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int($0.quantity))" : "\($0.quantity)"
+                    return "\(qtyStr) \($0.unit) \($0.itemName)"
+                }.joined(separator: ", ")
+                payload.message = "Added \(desc) to the bill."
+            } else if !verifiedItems.isEmpty && !clarificationItems.isEmpty {
+                payload.status = "needs_clarification"
+            }
+        }
     }
 }

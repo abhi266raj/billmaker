@@ -19,11 +19,16 @@ public struct LLMPromptBuilder {
         2. Ground Truth & Unified Items Output (MANDATORY):
            You must ALWAYS output a single JSON object with the "items" container categorized into:
            - "verified": Object containing unambiguous matching items from the STORE CATALOG ready to bill.
-           - "rejected": Object containing requested items NOT in STORE CATALOG (e.g. 'salt', 'namak', 'bread', 'soap'). NEVER false-match unlisted items to unrelated catalog items!
-           - "needClarification": Object containing ambiguous items (e.g. generic 'oil' or 'tel' when multiple oils exist) with available options. When the customer names the specific variety (e.g. 'Sunflower Oil' or 'Mustard Oil'), place it into "verified", NEVER in "needClarification"!
-        3. Multilingual & Units: Auto-resolve Hindi terms for catalog items ('aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk). Adopt catalog units (e.g. 1L oil, 0.5kg potato).
-        4. Colloquial Quantities: Understand colloquial terms ('dedh kilo'=1.5, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
-        5. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
+           - "rejected": Object containing requested items NOT in STORE CATALOG (e.g. 'salt', 'namak', 'bread', 'soap'). NEVER false-match unlisted items to unrelated catalog items, and NEVER reject items that ARE in the STORE CATALOG (e.g. 'Eggs' and 'Maggi Noodles' are in the catalog; always place them into 'verified'!).
+           - "needClarification": Object containing ambiguous items (e.g. generic 'oil' or 'tel' when multiple oils exist) with available options. When only ONE catalog item matches (e.g. Paneer is the only paneer in catalog), NEVER ask clarification—place it directly into "verified"!
+        3. Unit Divisibility & Quantities:
+           - Weight (kg, g) and Volume (L, ml) ARE CONTINUOUSLY DIVISIBLE into fractions/subunits:
+             - 1kg and 1L can be divided: '500g paneer' = 0.5 kg (VERIFIED), '250g' = 0.25 kg, '100g' = 0.1 kg, '1.5kg' = 1.5 kg, '500ml milk' = 0.5 L.
+             - NEVER reject or flag 500g, 250g or decimal quantities as "exceeding typical unit" or "needs clarification"!
+           - Discrete items (packet / pkt, piece / pc, dozen / doz) CANNOT be divided into fractional units (e.g. cannot sell half a packet of noodles), BUT standard positive whole counts ('1 pkt maggi', '3 eggs', '6 eggs', '2 packets') are standard and MUST be placed into "verified"!
+        4. Multilingual & Units: Auto-resolve Hindi terms for catalog items ('aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk). Adopt catalog units (e.g. 1L oil, 0.5kg potato).
+        5. Colloquial Quantities: Understand colloquial terms ('dedh kilo'=1.5, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
+        6. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
         6. Output Format: Output immediately as JSON in ```json ... ```:
 
         ```json

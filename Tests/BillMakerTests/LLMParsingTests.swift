@@ -1221,4 +1221,64 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(newOrderMsg.parsedItems?.first?.itemName, "Potato")
         XCTAssertEqual(orchestrator.state, .initial)
     }
+
+    func testDivisibleUnitAndFalseRejectionsReconciledByGuardian() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        let rawLLMOutput = """
+        ```json
+        {"items": {"needClarification": {"paneer": {"unit": "kg", "options": ["Paneer"], "quantity": 0.5, "reason": "Requested quantity exceeds typical unit"}}, "rejected": {"eggs": {"reason": "Requested quantity exceeds standard unit"}, "maggi": {"reason": "Requested quantity exceeds standard unit"}}, "verified": {}}, "thought": "Customer requested 500g paneer, exceeding typical 1kg unit – ambiguous item needs clarification.", "message": "Please confirm if you'd like me to resolve the paneer quantity or adjust the other quantities."}
+        ```
+        """
+
+        let result = LLMResponseParser.parse(
+            content: rawLLMOutput,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "500g paneer, 3 eggs, aur 1 pkt maggi"
+        )
+
+        // Guardian reconciles: 0.5kg Paneer is a divisible unit, Eggs & Maggi are catalog items
+        XCTAssertEqual(result.status, .ready)
+        guard let items = result.parsedItems else {
+            XCTFail("Parsed items should not be nil")
+            return
+        }
+        XCTAssertEqual(items.count, 3)
+
+        let paneer = items.first(where: { $0.itemName == "Paneer" })
+        XCTAssertNotNil(paneer)
+        XCTAssertEqual(paneer?.quantity, 0.5)
+        XCTAssertEqual(paneer?.unit, "kg")
+
+        let eggs = items.first(where: { $0.itemName == "Eggs" })
+        XCTAssertNotNil(eggs)
+        XCTAssertEqual(eggs?.quantity, 3.0)
+
+        let maggi = items.first(where: { $0.itemName.localizedCaseInsensitiveContains("maggi") })
+        XCTAssertNotNil(maggi)
+        XCTAssertEqual(maggi?.quantity, 1.0)
+
+        XCTAssertNotNil(result.billSummary)
+        XCTAssertEqual(result.billSummary?.items.count, 3)
+    }
+
+    func testItemCatalogMatcherExtractQuantityAndUnit() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        guard let paneer = fullCatalog.first(where: { $0.name == "Paneer" }),
+              let eggs = fullCatalog.first(where: { $0.name == "Eggs" }),
+              let maggi = fullCatalog.first(where: { $0.name.contains("Maggi") }) else {
+            XCTFail("Catalog items missing")
+            return
+        }
+
+        let paneerExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: paneer, from: "500g paneer, 3 eggs, aur 1 pkt maggi")
+        XCTAssertEqual(paneerExtract.quantity, 0.5)
+        XCTAssertEqual(paneerExtract.unit, "kg")
+
+        let eggsExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: eggs, from: "500g paneer, 3 eggs, aur 1 pkt maggi")
+        XCTAssertEqual(eggsExtract.quantity, 3.0)
+
+        let maggiExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: maggi, from: "500g paneer, 3 eggs, aur 1 pkt maggi")
+        XCTAssertEqual(maggiExtract.quantity, 1.0)
+    }
 }
