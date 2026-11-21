@@ -1,5 +1,19 @@
 import Foundation
 
+public enum SellingType: String, Codable, CaseIterable, Identifiable, Sendable {
+    case loose = "loose"
+    case packet = "packet"
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .loose: return "Loose"
+        case .packet: return "Packet"
+        }
+    }
+}
+
 public enum UnitType: String, Codable, CaseIterable, Identifiable, Sendable {
     case kg = "kg"
     case gram = "gram"
@@ -56,6 +70,8 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
     public var category: String
     public var notes: String
     public var inStock: Bool
+    public var sellingType: SellingType
+    public var packetSize: String?
 
     public init(
         id: UUID = UUID(),
@@ -64,7 +80,9 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
         pricePerUnit: Double,
         category: String = "General",
         notes: String = "",
-        inStock: Bool = true
+        inStock: Bool = true,
+        sellingType: SellingType? = nil,
+        packetSize: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -73,6 +91,8 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
         self.category = category
         self.notes = notes
         self.inStock = inStock
+        self.sellingType = sellingType ?? (unitType == .packet ? .packet : .loose)
+        self.packetSize = packetSize
     }
 
     public init(from decoder: Decoder) throws {
@@ -84,13 +104,22 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
         self.category = try container.decodeIfPresent(String.self, forKey: .category) ?? "General"
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes) ?? ""
         self.inStock = try container.decodeIfPresent(Bool.self, forKey: .inStock) ?? true
-        // Aliases are discarded if present in legacy JSON
+        let decodedSellingType = try container.decodeIfPresent(SellingType.self, forKey: .sellingType)
+        self.sellingType = decodedSellingType ?? (unitType == .packet ? .packet : .loose)
+        self.packetSize = try container.decodeIfPresent(String.self, forKey: .packetSize)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, unitType, pricePerUnit, category, notes, inStock, sellingType, packetSize
     }
 
     public var allSearchTerms: [String] {
         var terms = [name.lowercased()]
         if !category.isEmpty {
             terms.append(category.lowercased())
+        }
+        if let size = packetSize, !size.isEmpty {
+            terms.append(size.lowercased())
         }
         return terms.filter { !$0.isEmpty }
     }

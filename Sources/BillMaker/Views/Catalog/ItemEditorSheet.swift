@@ -12,6 +12,8 @@ public struct ItemEditorSheet: View {
     @State private var category: String = "Vegetables"
     @State private var notes: String = ""
     @State private var inStock: Bool = true
+    @State private var sellingType: SellingType = .loose
+    @State private var packetSize: String = ""
 
     private let standardCategories = ["Vegetables", "Fruits", "Dairy", "Oils & Spices", "Pantry & Grains", "Packaged Food", "Poultry & Eggs", "Beverages", "General"]
 
@@ -34,6 +36,17 @@ public struct ItemEditorSheet: View {
                 }
 
                 Section(header: Text("Pricing & Measurement")) {
+                    Picker("Selling Format", selection: $sellingType) {
+                        ForEach(SellingType.allCases) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+
+                    if sellingType == .packet {
+                        TextField("Packet Size (e.g. 400g, 1L, small, large)", text: $packetSize)
+                    }
+
                     Picker("How is it sold? (Unit)", selection: $unitType) {
                         ForEach(UnitType.allCases) { unit in
                             Text(unit.displayName).tag(unit)
@@ -77,6 +90,8 @@ public struct ItemEditorSheet: View {
                     category = item.category
                     notes = item.notes
                     inStock = item.inStock
+                    sellingType = item.sellingType
+                    packetSize = item.packetSize ?? ""
                 }
             }
         }
@@ -90,7 +105,9 @@ public struct ItemEditorSheet: View {
             pricePerUnit: pricePerUnit,
             category: category,
             notes: notes.trimmingCharacters(in: .whitespaces),
-            inStock: inStock
+            inStock: inStock,
+            sellingType: sellingType,
+            packetSize: packetSize.trimmingCharacters(in: .whitespaces).isEmpty ? nil : packetSize.trimmingCharacters(in: .whitespaces)
         )
         onSave(item)
     }

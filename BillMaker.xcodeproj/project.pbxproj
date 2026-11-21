@@ -25,7 +25,6 @@
 		702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */; };
 		70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */; };
 		75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */; };
-		7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */; };
 		7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31814D047DFD89075E97FF9D /* SettingsView.swift */; };
 		8023966E58A6813A635C7011 /* MasterBillingOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */; };
 		81C727B929DAB0BAA333E204 /* SpeechRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */; };
@@ -82,7 +81,6 @@
 		7F950721B8788B0A1FEF6C60 /* ClarificationSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationSpec.swift; sourceTree = "<group>"; };
 		83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
 		88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterBillingOrchestrator.swift; sourceTree = "<group>"; };
-		8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMResponseParser.swift; sourceTree = "<group>"; };
 		8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
 		94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCatalogMatcher.swift; sourceTree = "<group>"; };
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
@@ -280,7 +278,6 @@
 			children = (
 				664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */,
 				94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */,
-				8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */,
 				44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */,
 				D84681EF20011ABDFDCCD38A /* Orchestrator */,
 				028265D2287CA28899033F9E /* Specs */,
@@ -457,7 +454,6 @@
 				ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */,
 				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
 				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
-				7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */,
 				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
 				500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */,
 				8023966E58A6813A635C7011 /* MasterBillingOrchestrator.swift in Sources */,

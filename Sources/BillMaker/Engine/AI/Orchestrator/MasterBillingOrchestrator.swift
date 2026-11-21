@@ -236,7 +236,7 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
 
         switch result {
         case .success(let rawOutput):
-            let parsed = LLMResponseParser.parse(
+            let parsed = BillingOutput.parse(
                 content: rawOutput,
                 catalog: catalog,
                 settings: settings,

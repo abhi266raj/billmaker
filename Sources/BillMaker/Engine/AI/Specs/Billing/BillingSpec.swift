@@ -47,16 +47,25 @@ public struct BillingSpec: ModelledSpec {
            You must ALWAYS output a single JSON object with the "items" container categorized into:
            - "verified": Object containing unambiguous matching items from the STORE CATALOG ready to bill.
            - "rejected": Object containing requested items NOT in STORE CATALOG (e.g. 'salt', 'namak', 'bread', 'soap'). NEVER false-match unlisted items to unrelated catalog items, and NEVER reject items that ARE in the STORE CATALOG (e.g. 'Eggs' and 'Maggi Noodles' are in the catalog; always place them into 'verified'!).
-           - "needClarification": Object containing ambiguous items (e.g. generic 'oil' or 'tel' when multiple oils exist) with available options. When only ONE catalog item matches (e.g. Paneer is the only paneer in catalog), NEVER ask clarification—place it directly into "verified"!
-        3. Unit Divisibility & Quantities:
-           - Weight (kg, g) and Volume (L, ml) ARE FULLY DIVISIBLE into fractions/subunits:
-             - 1kg and 1L can be divided: '500g paneer' = 0.5 kg (VERIFIED), '250g' = 0.25 kg, '100g' = 0.1 kg, '1.5kg' = 1.5 kg, '500ml milk' = 0.5 L.
-             - NEVER reject or flag 500g, 250g or decimal quantities as "exceeding typical unit" or "needs clarification"!
-           - Discrete items (packet / pkt, piece / pc, dozen / doz) CANNOT be divided into fractional units (e.g. cannot sell half a packet of noodles), BUT standard positive whole counts ('1 pkt maggi', '3 eggs', '6 eggs', '2 packets') are standard and MUST be placed into "verified"!
-        4. Multilingual & Units: Auto-resolve Hindi terms for catalog items ('aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk). Adopt catalog units (e.g. 1L oil, 0.5kg potato).
-        5. Colloquial Quantities: Understand colloquial terms ('dedh kilo'=1.5, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
-        6. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
-        7. Output Format: Output immediately as JSON in ```json ... ```:
+           - "needClarification": Object containing ambiguous items (e.g. generic 'oil' or 'tel' when multiple oils exist, or ambiguous packet sizes) with available options. When only ONE catalog item matches (e.g. Paneer is the only paneer in catalog), NEVER ask clarification—place it directly into "verified"!
+        3. Loose Items vs Packets & Unit Divisibility:
+           - Items in STORE CATALOG have an ID (1, 2, 3, etc.) and a type: "loose" or "packet".
+           - LOOSE ITEMS (type: "loose", e.g. Potato, Tomato, Paneer, Cow Milk, Onion, Rice):
+             - Loose items CAN be divided into any fractional weight (kg, g) or volume (L, ml):
+               '500g paneer' = 0.5 kg (VERIFIED), '250g' = 0.25 kg, '100g' = 0.1 kg, '1.5kg' = 1.5 kg, '500ml milk' = 0.5 L.
+             - NEVER reject or flag divisible loose quantities as "exceeding typical unit" or "needs clarification"!
+           - PACKETS (type: "packet", e.g. Curd, Maggi Noodles, Biscuits):
+             - Packets CANNOT be divided into fractional units (e.g. customer cannot buy half a packet).
+             - Standard quantities are positive whole integers (1 pkt, 2 pkts, etc.).
+             - Packets have a size (packetSize), which can be weight ("400g", "70g", "1kg"), volume ("500ml", "1L"), or size ("small", "medium", "large").
+             - If customer specifies a packet size (e.g. "small packet curd", "400g curd", "large packet"), match that packet item.
+             - If customer asks for an item where multiple packet sizes exist and the size is ambiguous, or asks for an undivided packet with fractional quantity (e.g. "half packet maggi"), place into "needClarification".
+        4. Explicit Custom Price Input:
+           - When a customer specifies an explicit price or packet denomination (e.g. '1 packet milk of 30 rs', 'milk of 30 rs', '₹30 milk', '30 rs ka doodh'), adopt that specified price (unitPrice: 30.0) for the item and place it into "verified"!
+        5. Multilingual & Units: Auto-resolve Hindi terms for catalog items ('aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk). Adopt catalog units (e.g. 1L oil, 0.5kg potato).
+        6. Colloquial Quantities: Understand colloquial terms ('dedh kilo'=1.5, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
+        7. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
+        8. Output Format: Output immediately as JSON in ```json ... ```:
 
         ```json
         {

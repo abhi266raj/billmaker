@@ -149,8 +149,15 @@ public struct CatalogView: View {
                     .width(min: 100, ideal: 120)
 
                     TableColumn("Sold By") { item in
-                        Text(item.unitType.displayName)
-                            .font(.caption)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.unitType.displayName)
+                                .font(.caption)
+                            if item.sellingType == .packet {
+                                Text(item.packetSize != nil ? "Packet (\(item.packetSize!))" : "Packet")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
                     .width(min: 120, ideal: 150)
 

@@ -53,7 +53,7 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertTrue(spec.instructions.contains("Which oil?"))
     }
 
-    func testLLMResponseParserExtractsThoughtAndJSON() {
+    func testBillingOutputExtractsThoughtAndJSON() {
         let llmOutput = """
         <thought>
         1. Identified 2kg Potato from alias 'aloo'
@@ -81,7 +81,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: llmOutput,
             catalog: sampleCatalog,
             settings: .defaultSettings
@@ -125,7 +125,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Tomato", unitType: .kg, pricePerUnit: 40.0)
         ]
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: rawAppleFMOutput,
             catalog: catalog,
             settings: .defaultSettings
@@ -155,7 +155,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: arrayOutput,
             catalog: sampleCatalog,
             settings: .defaultSettings
@@ -175,7 +175,7 @@ final class LLMParsingTests: XCTestCase {
     func testMissingJSONReturnsErrorAsRequired() {
         let plainTextOutput = "Sure! I have added 2kg Potato to your cart."
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: plainTextOutput,
             catalog: sampleCatalog,
             settings: .defaultSettings
@@ -203,7 +203,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0)
         ]
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: clarificationOutput,
             catalog: catalog,
             settings: .defaultSettings,
@@ -228,7 +228,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: notFoundJson,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -260,7 +260,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: hallucinatedPayload,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -298,7 +298,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
         ]
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: readyOilPayload,
             catalog: multiOilCatalog,
             settings: .defaultSettings,
@@ -332,7 +332,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: readyOilPayload,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -368,7 +368,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
         ]
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: clarificationJson,
             catalog: multiOilCatalog,
             settings: .defaultSettings,
@@ -444,7 +444,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: multiPayload,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -478,7 +478,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsedMessage = LLMResponseParser.parse(
+        let parsedMessage = BillingOutput.parse(
             content: clarificationJson,
             catalog: sampleCatalog,
             settings: .defaultSettings
@@ -502,7 +502,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        _ = LLMResponseParser.parse(
+        _ = BillingOutput.parse(
             content: malformedJson,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -525,7 +525,7 @@ final class LLMParsingTests: XCTestCase {
     func testDiagnosticsLoggerCapturesMissingJsonTelemetry() {
         let plainText = "I have added nothing because no JSON exists here."
 
-        _ = LLMResponseParser.parse(
+        _ = BillingOutput.parse(
             content: plainText,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -565,7 +565,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -599,7 +599,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -638,7 +638,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 140.0)
         ]
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: catalog,
             settings: .defaultSettings,
@@ -671,7 +671,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -707,7 +707,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -759,7 +759,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -795,7 +795,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -843,7 +843,7 @@ final class LLMParsingTests: XCTestCase {
             Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
         ]
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: catalog,
             settings: .defaultSettings,
@@ -955,7 +955,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: fullCatalog,
             settings: .defaultSettings,
@@ -982,7 +982,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let result = LLMResponseParser.parse(
+        let result = BillingOutput.parse(
             content: corruptJson,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -1024,7 +1024,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let result = LLMResponseParser.parse(
+        let result = BillingOutput.parse(
             content: trailingCommaJson,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -1063,7 +1063,7 @@ final class LLMParsingTests: XCTestCase {
               "unitPrice": 30.0
         """
 
-        let result = LLMResponseParser.parse(
+        let result = BillingOutput.parse(
             content: truncatedJson,
             catalog: sampleCatalog,
             settings: .defaultSettings,
@@ -1238,7 +1238,7 @@ final class LLMParsingTests: XCTestCase {
         ```
         """
 
-        let result = LLMResponseParser.parse(
+        let result = BillingOutput.parse(
             content: rawLLMOutput,
             catalog: fullCatalog,
             settings: .defaultSettings,
@@ -1320,7 +1320,7 @@ final class LLMParsingTests: XCTestCase {
         }
         ```
         """
-        let parsed = LLMResponseParser.parse(
+        let parsed = BillingOutput.parse(
             content: json,
             catalog: fullCatalog,
             settings: .defaultSettings,
@@ -1437,5 +1437,175 @@ final class LLMParsingTests: XCTestCase {
         let bananaExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: banana, from: "2 pkts maggi aur 1 dozen kela")
         XCTAssertEqual(bananaExtract.quantity, 1.0)
         XCTAssertEqual(bananaExtract.unit, "dozen")
+    }
+
+    func testBillingInputFormatsWithNumericIdsAndLoosePacketTypes() {
+        let catalog = [
+            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0, sellingType: .loose),
+            Item(name: "Curd", unitType: .packet, pricePerUnit: 35.0, sellingType: .packet, packetSize: "400g")
+        ]
+
+        // 1. Text Summary Format
+        let textInput = BillingInput(request: "2kg aloo", catalog: catalog, currencySymbol: "₹", asJSON: false)
+        XCTAssertTrue(textInput.catalogSummary.contains("1. Potato: ₹30.0/kg [type: loose]"))
+        XCTAssertTrue(textInput.catalogSummary.contains("2. Curd: ₹35.0/pkt [type: packet, size: 400g]"))
+
+        // 2. JSON Format
+        let jsonInput = BillingInput(request: "2kg aloo", catalog: catalog, currencySymbol: "₹", asJSON: true)
+        XCTAssertTrue(jsonInput.catalogSummary.contains("\"id\"") && (jsonInput.catalogSummary.contains("1") || jsonInput.catalogSummary.contains("\"1\"")))
+        XCTAssertTrue(jsonInput.catalogSummary.contains("\"type\"") && jsonInput.catalogSummary.contains("packet"))
+        XCTAssertTrue(jsonInput.catalogSummary.contains("\"packetSize\"") && jsonInput.catalogSummary.contains("400g"))
+    }
+
+    func testPacketWithSpecifiedWeightSizeMatchesSinglePacket() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        guard let curd = fullCatalog.first(where: { $0.name == "Curd" }) else {
+            XCTFail("Missing Curd in catalog")
+            return
+        }
+
+        XCTAssertEqual(curd.sellingType, .packet)
+        XCTAssertEqual(curd.packetSize, "400g")
+
+        // "400g curd" -> 1.0 pkt
+        let singleExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: curd, from: "400g curd")
+        XCTAssertEqual(singleExtract.quantity, 1.0)
+        XCTAssertEqual(singleExtract.unit, "pkt")
+
+        // "2 packet curd 400g" -> 2.0 pkt
+        let multiExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: curd, from: "2 packet curd 400g")
+        XCTAssertEqual(multiExtract.quantity, 2.0)
+        XCTAssertEqual(multiExtract.unit, "pkt")
+    }
+
+    func testDivisibleLooseItemVsIndivisiblePacketBusinessRules() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        // 1. Loose item with fractional quantity (500g paneer = 0.5 kg) is verified
+        let looseJson = """
+        ```json
+        {
+          "thought": "Customer requested 500g paneer.",
+          "message": "Added 0.5 kg Paneer.",
+          "items": {
+            "needClarification": {
+              "paneer": {
+                "quantity": 0.5,
+                "unit": "kg",
+                "options": ["Paneer"],
+                "reason": "Requested quantity exceeds typical unit"
+              }
+            }
+          }
+        }
+        ```
+        """
+        let parsedLoose = BillingOutput.parse(
+            content: looseJson,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "500g paneer"
+        )
+        XCTAssertEqual(parsedLoose.status, .ready)
+        XCTAssertEqual(parsedLoose.parsedItems?.count, 1)
+        XCTAssertEqual(parsedLoose.parsedItems?.first?.itemName, "Paneer")
+        XCTAssertEqual(parsedLoose.parsedItems?.first?.quantity, 0.5)
+
+        // 2. Packet item with fractional quantity (half packet maggi = 0.5 packet) cannot be divided
+        let packetJson = """
+        ```json
+        {
+          "thought": "Customer requested half packet maggi.",
+          "message": "Added 0.5 pkt Maggi Noodles.",
+          "items": {
+            "verified": {
+              "Maggi Noodles": {
+                "quantity": 0.5,
+                "unit": "pkt",
+                "unitPrice": 14.0
+              }
+            }
+          }
+        }
+        ```
+        """
+        let parsedPacket = BillingOutput.parse(
+            content: packetJson,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "half packet maggi"
+        )
+        // Packet cannot be divided: must be moved to needsClarification!
+        XCTAssertEqual(parsedPacket.status, .needsClarification)
+        XCTAssertEqual(parsedPacket.pendingClarification?.candidateNames.contains("Maggi Noodles"), true)
+    }
+
+    func testCustomPriceInputOnePacketMilkOf30Rs() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        // 1. Explicit price extraction test
+        let extractedPrice = ItemCatalogMatcher.extractExplicitPrice(for: "milk", from: "1 packet milk of 30 rs")
+        XCTAssertEqual(extractedPrice, 30.0)
+
+        // 2. Full parse test with explicit price 30 rs
+        let json = """
+        ```json
+        {
+          "thought": "Customer requested 1 packet milk of 30 rs.",
+          "message": "Added 1 pkt Packet Milk at ₹30.",
+          "items": {
+            "verified": {
+              "Packet Milk": {
+                "quantity": 1.0,
+                "unit": "pkt",
+                "unitPrice": 30.0
+              }
+            }
+          }
+        }
+        ```
+        """
+        let parsed = BillingOutput.parse(
+            content: json,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "1 packet milk of 30 rs"
+        )
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        let item = parsed.parsedItems?.first
+        XCTAssertEqual(item?.quantity, 1.0)
+        XCTAssertEqual(item?.unit, "pkt")
+        XCTAssertEqual(item?.unitPrice, 30.0)
+        XCTAssertEqual(parsed.billSummary?.grandTotal, 30.0)
+
+        // 3. Multi-packet with explicit price: "2 packet milk of 30 rs" -> total = 60
+        let multiJson = """
+        ```json
+        {
+          "thought": "Customer requested 2 packets milk of 30 rs.",
+          "message": "Added 2 pkt Packet Milk at ₹30.",
+          "items": {
+            "verified": {
+              "Packet Milk": {
+                "quantity": 2.0,
+                "unit": "pkt",
+                "unitPrice": 30.0
+              }
+            }
+          }
+        }
+        ```
+        """
+        let parsedMulti = BillingOutput.parse(
+            content: multiJson,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "2 packet milk of 30 rs"
+        )
+        XCTAssertEqual(parsedMulti.status, .ready)
+        XCTAssertEqual(parsedMulti.parsedItems?.first?.quantity, 2.0)
+        XCTAssertEqual(parsedMulti.parsedItems?.first?.unitPrice, 30.0)
+        XCTAssertEqual(parsedMulti.billSummary?.grandTotal, 60.0)
     }
 }

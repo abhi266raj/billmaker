@@ -31,13 +31,22 @@ public struct ItemCatalogMatcher {
             list.append(contentsOf: ["pyaz", "pyaaz", "kanda", "onions"])
         }
         if lower.contains("cow milk") || lower.contains("milk") {
-            list.append(contentsOf: ["doodh", "dudh", "milk"])
+            list.append(contentsOf: ["doodh", "dudh", "milk", "pouch milk", "packet milk"])
         }
         if lower.contains("curd") {
             list.append(contentsOf: ["dahi", "curd"])
         }
         if lower.contains("paneer") {
             list.append(contentsOf: ["cottage cheese", "paneer"])
+        }
+        if lower.contains("butter") {
+            list.append(contentsOf: ["butter", "makkhan", "makhan", "amul butter"])
+        }
+        if lower.contains("bread") {
+            list.append(contentsOf: ["bread", "pav", "sliced bread"])
+        }
+        if lower.contains("tea") || lower.contains("chai") {
+            list.append(contentsOf: ["chai", "chai patti", "tea", "tea leaves"])
         }
         if lower.contains("mustard oil") || lower.contains("mustard") {
             list.append(contentsOf: ["sarson", "sarso", "sarson tel", "sarso tel", "sarson ka tel", "sarso ka tel", "mustard oil", "mustard", "rai"])
@@ -76,6 +85,22 @@ public struct ItemCatalogMatcher {
             list.append(contentsOf: ["adrak", "ginger", "adrakh"])
         }
 
+        return Array(Set(list))
+    }
+
+    /// Returns aliases for an Item, including its packet size variations (e.g. "400g curd", "small curd").
+    public static func aliases(for item: Item) -> [String] {
+        var list = aliases(for: item.name)
+        if let size = item.packetSize, !size.isEmpty {
+            let sizeLower = size.lowercased()
+            list.append("\(item.name.lowercased()) \(sizeLower)")
+            list.append("\(sizeLower) \(item.name.lowercased())")
+            let baseAliases = list
+            for a in baseAliases {
+                list.append("\(a) \(sizeLower)")
+                list.append("\(sizeLower) \(a)")
+            }
+        }
         return Array(Set(list))
     }
 
@@ -259,7 +284,40 @@ public struct ItemCatalogMatcher {
         from userInput: String
     ) -> (quantity: Double, unit: String) {
         let normalized = normalizeColloquials(userInput.lowercased())
-        let itemAliases = aliases(for: item.name)
+        let itemAliases = aliases(for: item)
+
+        // For packet items:
+        if item.sellingType == .packet {
+            // Check for fractional requests (e.g. "half packet maggi", "aadha packet maggi")
+            if normalized.contains("half packet") || normalized.contains("aadha packet") || normalized.contains("adha packet") || normalized.contains("0.5 packet") || normalized.contains("0.5 pkt") {
+                return (0.5, "pkt")
+            }
+
+            // Check if packet size is explicitly mentioned (e.g. "400g curd" where packetSize is "400g")
+            if let size = item.packetSize?.lowercased(), !size.isEmpty, normalized.contains(size) {
+                // Check if user also gave a count (e.g. "2 packet 400g curd" or "2 400g curd")
+                let countPattern = "(\\d+(?:\\.\\d+)?)\\s*(?:packet|packets|pkt|pkts)?\\s*(?:of\\s+)?" + NSRegularExpression.escapedPattern(for: size)
+                if let regex = try? NSRegularExpression(pattern: countPattern, options: .caseInsensitive),
+                   let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: (normalized as NSString).length)) {
+                    let numStr = (normalized as NSString).substring(with: match.range(at: 1))
+                    let sizeNumStr = String(size.filter { $0.isNumber || $0 == "." })
+                    if let cnt = Double(numStr), cnt > 0, cnt != Double(sizeNumStr) {
+                        return (cnt, "pkt")
+                    }
+                }
+                // Check if there is an explicit packet count anywhere for this item
+                let pktPattern = "(\\d+(?:\\.\\d+)?)\\s*(?:packet|packets|pkt|pkts)"
+                if let regex = try? NSRegularExpression(pattern: pktPattern, options: .caseInsensitive),
+                   let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: (normalized as NSString).length)) {
+                    let numStr = (normalized as NSString).substring(with: match.range(at: 1))
+                    if let cnt = Double(numStr) {
+                        return (cnt, "pkt")
+                    }
+                }
+                // Default: 1 packet of this size
+                return (1.0, "pkt")
+            }
+        }
 
         // 1. Regex to find quantity and unit preceding or surrounding the item alias
         // e.g. "500g paneer", "500 g paneer", "0.5kg paneer", "3 eggs", "1 pkt maggi"
@@ -328,5 +386,79 @@ public struct ItemCatalogMatcher {
             return (quantity, "pkt")
         }
         return (quantity, catalogUnitType.shortLabel)
+    }
+
+    /// Extracts an explicitly specified price from user input for an item
+    /// e.g. "1 packet milk of 30 rs", "of 30 rs", "30 rs milk", "milk 30rs", "₹30", "30 rupaye"
+    public static func extractExplicitPrice(for itemName: String = "", from userInput: String) -> Double? {
+        let normalized = normalizeNumerals(userInput.lowercased())
+
+        // 1. "of 30 rs", "of 30 rupees", "for 30 rs", "at 30 rs", "worth 30 rs"
+        let prepositionPattern = #"(?:of|for|at|worth)\s*(?:rs\.?|inr|₹|rupees?|rupaye)?\s*(\d+(?:\.\d+)?)\s*(?:rs\.?|inr|₹|rupees?|rupaye)?"#
+        if let regex = try? NSRegularExpression(pattern: prepositionPattern, options: .caseInsensitive) {
+            let nsStr = normalized as NSString
+            if let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: nsStr.length)) {
+                let numStr = nsStr.substring(with: match.range(at: 1))
+                if let val = Double(numStr), val > 0 {
+                    return val
+                }
+            }
+        }
+
+        // 2. "30 rs", "30rs", "30 rupees", "30 inr", "₹30", "30 rupaye", "30 ka"
+        let currencyPattern = #"(?:rs\.?|inr|₹)\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:rs\.?|inr|₹|rupees?|rupaye|ka\b)"#
+        if let regex = try? NSRegularExpression(pattern: currencyPattern, options: .caseInsensitive) {
+            let nsStr = normalized as NSString
+            if let match = regex.firstMatch(in: normalized, options: [], range: NSRange(location: 0, length: nsStr.length)) {
+                let r1 = match.range(at: 1)
+                let r2 = match.range(at: 2)
+                let rangeToUse = r1.location != NSNotFound ? r1 : r2
+                if rangeToUse.location != NSNotFound {
+                    let numStr = nsStr.substring(with: rangeToUse)
+                    if let val = Double(numStr), val > 0 {
+                        return val
+                    }
+                }
+            }
+        }
+
+        return nil
+    }
+
+    /// Finds the best matching Item in store catalog using exact name, aliases, or containment.
+    public static func findBestCatalogMatch(for query: String, in catalog: [Item]) -> Item? {
+        let clean = query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.isEmpty { return nil }
+
+        // 1. Exact case-insensitive match
+        if let exact = catalog.first(where: { $0.name.lowercased() == clean }) {
+            return exact
+        }
+
+        // 2. Exact match on aliases
+        for item in catalog {
+            let itemAliases = aliases(for: item)
+            for alias in itemAliases {
+                if alias.lowercased() == clean {
+                    return item
+                }
+            }
+        }
+
+        // 3. Containment / word match
+        for item in catalog {
+            let iLower = item.name.lowercased()
+            if iLower.contains(clean) || clean.contains(iLower) {
+                return item
+            }
+            for alias in aliases(for: item) {
+                let aLower = alias.lowercased()
+                if aLower.count >= 3 && (clean.contains(aLower) || aLower.contains(clean)) {
+                    return item
+                }
+            }
+        }
+
+        return nil
     }
 }
