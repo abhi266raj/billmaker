@@ -42,66 +42,57 @@ public struct LLMResponseParser {
             }
         }
 
-        // 3. Fallback: If no structured items were parsed from JSON, attempt catalog matching from text
-        if parsedPayload?.items == nil || parsedPayload?.items?.isEmpty == true {
-            let fallbackItems = extractFallbackItems(from: cleanContent, catalog: catalog)
-            if !fallbackItems.isEmpty {
-                if parsedPayload != nil {
-                    parsedPayload?.items = fallbackItems
-                } else {
-                    parsedPayload = AgentJsonPayload(
-                        status: "ready",
-                        message: "Items identified from catalog.",
-                        items: fallbackItems
-                    )
-                }
-            }
-        }
-
-        // 4. Compute financial bill summary from parsed items
-        var billSummary: BillSummary? = nil
-        if let items = parsedPayload?.items, !items.isEmpty {
-            billSummary = BillCalculator.computeBill(
-                from: items,
-                catalog: catalog,
-                currencySymbol: settings.currencySymbol,
-                taxRatePercent: settings.taxRatePercent
+        // 3. Strict Requirement: Output from LLM must be valid JSON; missing JSON is an error
+        guard let payload = parsedPayload, let items = payload.items, !items.isEmpty else {
+            return AgentMessage(
+                role: .agent,
+                text: "Error: AI response did not contain valid structured JSON. Please re-enter the items.",
+                thoughtProcess: thought ?? "No valid structured JSON payload extracted from model completion.",
+                rawJsonOutput: extractedJson,
+                status: .error,
+                canUndo: false
             )
         }
 
-        // 5. Extract user-facing message
-        let displayText: String = {
-            if let payload = parsedPayload, !payload.message.isEmpty {
-                return payload.message
-            }
-            if let items = parsedPayload?.items, !items.isEmpty {
-                let itemDesc = items.map { "\($0.quantity)\($0.unit.isEmpty ? "" : " " + $0.unit) \($0.itemName)" }.joined(separator: ", ")
-                return "Added \(itemDesc) to the bill."
-            }
-            var text = cleanContent
-            if let json = extractedJson {
-                text = text.replacingOccurrences(of: "```json\n\(json)\n```", with: "")
-                text = text.replacingOccurrences(of: "```\(json)```", with: "")
-                text = text.replacingOccurrences(of: json, with: "")
-            }
-            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? "Order processed." : trimmed
+        // 4. Guarantee thought process is present in all cases
+        let finalThought: String = {
+            if let t = thought, !t.isEmpty { return t }
+            if let pt = payload.thought, !pt.isEmpty { return pt }
+            let itemDesc = items.map { "\($0.itemName) (\($0.quantity)\($0.unit))" }.joined(separator: ", ")
+            return "Resolved from store catalog: \(itemDesc). Mathematical totals calculated."
         }()
 
-        let status: AgentResponseStatus = (parsedPayload?.status == "needs_clarification") ? .needsClarification : .ready
-        let hasAutoCorrection = parsedPayload?.items?.contains { $0.wasAutoCorrected == true } == true
+        // 5. Compute financial bill summary from parsed items
+        let billSummary = BillCalculator.computeBill(
+            from: items,
+            catalog: catalog,
+            currencySymbol: settings.currencySymbol,
+            taxRatePercent: settings.taxRatePercent
+        )
+
+        // 6. Extract user-facing message
+        let displayText: String = {
+            if !payload.message.isEmpty {
+                return payload.message
+            }
+            let itemDesc = items.map { "\($0.quantity)\($0.unit.isEmpty ? "" : " " + $0.unit) \($0.itemName)" }.joined(separator: ", ")
+            return "Added \(itemDesc) to the bill."
+        }()
+
+        let status: AgentResponseStatus = (payload.status == "needs_clarification") ? .needsClarification : .ready
+        let hasAutoCorrection = items.contains { $0.wasAutoCorrected == true }
 
         return AgentMessage(
             role: .agent,
             text: displayText,
-            thoughtProcess: thought ?? parsedPayload?.thought,
+            thoughtProcess: finalThought,
             rawJsonOutput: extractedJson,
             status: status,
             billSummary: billSummary,
-            parsedItems: parsedPayload?.items,
-            pendingClarification: parsedPayload?.pendingClarification,
+            parsedItems: items,
+            pendingClarification: payload.pendingClarification,
             hasAutoCorrection: hasAutoCorrection,
-            unitCorrectionNotes: parsedPayload?.unitCorrections,
+            unitCorrectionNotes: payload.unitCorrections,
             canUndo: true
         )
     }

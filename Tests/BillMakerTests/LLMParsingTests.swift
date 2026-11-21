@@ -160,7 +160,7 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(oil?.unit, "ml")
     }
 
-    func testFallbackCatalogExtractionFromUnstructuredText() {
+    func testMissingJSONReturnsErrorAsRequired() {
         let plainTextOutput = "Sure! I have added 2kg Potato to your cart."
 
         let parsedMessage = LLMResponseParser.parse(
@@ -169,11 +169,10 @@ final class LLMParsingTests: XCTestCase {
             settings: .defaultSettings
         )
 
-        XCTAssertEqual(parsedMessage.status, .ready)
-        XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
-        XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Potato")
-        XCTAssertEqual(parsedMessage.parsedItems?.first?.quantity, 2.0)
-        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 60.0)
+        XCTAssertEqual(parsedMessage.status, .error)
+        XCTAssertNil(parsedMessage.parsedItems)
+        XCTAssertNil(parsedMessage.billSummary)
+        XCTAssertNotNil(parsedMessage.thoughtProcess)
     }
 
     func testLiveDaemonIntegrationIfOnline() async throws {

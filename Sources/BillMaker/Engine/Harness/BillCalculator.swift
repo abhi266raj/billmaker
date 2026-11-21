@@ -107,11 +107,29 @@ public struct BillCalculator {
         )
     }
 
-    /// Merges newly parsed items into an existing cumulative live bill.
-    ///
-    /// Implements store policy when an item is re-entered:
-    /// - **Add**: Combines quantities (e.g., previously 1kg + new 2kg = 3kg).
-    /// - **Replace**: Overwrites the existing quantity with the newly specified quantity.
+    /// Recalculates a `BillSummary` given an updated list of `BilledItem`s.
+    public static func recalculateBill(
+        items: [BilledItem],
+        currencySymbol: String = "₹",
+        taxRatePercent: Double = 0.0,
+        discountAmount: Double = 0.0,
+        existingId: UUID? = nil,
+        createdAt: Date? = nil
+    ) -> BillSummary {
+        return BillSummary(
+            id: existingId ?? UUID(),
+            items: items,
+            taxRatePercent: taxRatePercent,
+            discountAmount: discountAmount,
+            currencySymbol: currencySymbol,
+            createdAt: createdAt ?? Date()
+        )
+    }
+
+    /// Merges newly parsed items into an existing cumulative live bill according to `DuplicateItemPolicy`:
+    /// - **createDuplicate**: Adds a separate line item (item appears twice in the bill).
+    /// - **addToQuantity**: Sums the newly entered quantity with the existing item.
+    /// - **replaceQuantity**: Replaces the existing quantity with the new one.
     ///
     /// - Parameters:
     ///   - existingBill: The current active live bill summary (if any).
@@ -120,7 +138,7 @@ public struct BillCalculator {
     ///   - currencySymbol: Currency display symbol.
     ///   - taxRatePercent: Percentage tax.
     ///   - discountAmount: Fixed discount.
-    ///   - replaceExisting: `true` to replace quantity; `false` to add cumulative quantity.
+    ///   - policy: The `DuplicateItemPolicy` to apply.
     /// - Returns: An updated `BillSummary` reflecting the cumulative invoice state.
     public static func mergeIntoBill(
         existingBill: BillSummary?,
@@ -129,20 +147,23 @@ public struct BillCalculator {
         currencySymbol: String = "₹",
         taxRatePercent: Double = 0.0,
         discountAmount: Double = 0.0,
-        replaceExisting: Bool = false
+        policy: DuplicateItemPolicy = .createDuplicate
     ) -> BillSummary {
         var currentItems: [BilledItem] = existingBill?.items ?? []
 
         for parsed in newParsedItems {
             let newItem = computeSingleItem(parsed: parsed, catalog: catalog)
 
-            if let existingIndex = currentItems.firstIndex(where: {
-                ($0.itemId != nil && newItem.itemId != nil && $0.itemId == newItem.itemId) ||
-                $0.name.lowercased() == newItem.name.lowercased()
-            }) {
-                if replaceExisting {
-                    currentItems[existingIndex] = newItem
-                } else {
+            switch policy {
+            case .createDuplicate:
+                // Default: Always add as duplicate separate row in bill
+                currentItems.append(newItem)
+
+            case .addToQuantity:
+                if let existingIndex = currentItems.firstIndex(where: {
+                    ($0.itemId != nil && newItem.itemId != nil && $0.itemId == newItem.itemId) ||
+                    $0.name.lowercased() == newItem.name.lowercased()
+                }) {
                     let combinedQty = currentItems[existingIndex].quantity + newItem.quantity
                     let combinedSubtotal = combinedQty * currentItems[existingIndex].unitPrice
                     let combinedWeight: Double? = {
@@ -157,9 +178,19 @@ public struct BillCalculator {
                     currentItems[existingIndex].quantity = combinedQty
                     currentItems[existingIndex].subtotal = combinedSubtotal
                     currentItems[existingIndex].weightInKg = combinedWeight
+                } else {
+                    currentItems.append(newItem)
                 }
-            } else {
-                currentItems.append(newItem)
+
+            case .replaceQuantity:
+                if let existingIndex = currentItems.firstIndex(where: {
+                    ($0.itemId != nil && newItem.itemId != nil && $0.itemId == newItem.itemId) ||
+                    $0.name.lowercased() == newItem.name.lowercased()
+                }) {
+                    currentItems[existingIndex] = newItem
+                } else {
+                    currentItems.append(newItem)
+                }
             }
         }
 
@@ -170,6 +201,27 @@ public struct BillCalculator {
             discountAmount: discountAmount,
             currencySymbol: currencySymbol,
             createdAt: existingBill?.createdAt ?? Date()
+        )
+    }
+
+    /// Backwards compatibility overload
+    public static func mergeIntoBill(
+        existingBill: BillSummary?,
+        newParsedItems: [AgentParsedItem],
+        catalog: [Item],
+        currencySymbol: String = "₹",
+        taxRatePercent: Double = 0.0,
+        discountAmount: Double = 0.0,
+        replaceExisting: Bool
+    ) -> BillSummary {
+        return mergeIntoBill(
+            existingBill: existingBill,
+            newParsedItems: newParsedItems,
+            catalog: catalog,
+            currencySymbol: currencySymbol,
+            taxRatePercent: taxRatePercent,
+            discountAmount: discountAmount,
+            policy: replaceExisting ? .replaceQuantity : .addToQuantity
         )
     }
 }

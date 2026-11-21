@@ -3,9 +3,33 @@ import SwiftUI
 public struct InvoiceItemRowView: View {
     let item: BilledItem
     let currencySymbol: String
+    var onUpdateQuantity: ((Double) -> Void)? = nil
+    var onRemove: (() -> Void)? = nil
+
+    private var stepAmount: Double {
+        switch item.unit {
+        case .kg, .litre: return 0.5
+        case .gram: return 100.0
+        case .ml: return 100.0
+        case .piece, .packet, .dozen: return 1.0
+        }
+    }
+
+    public init(
+        item: BilledItem,
+        currencySymbol: String,
+        onUpdateQuantity: ((Double) -> Void)? = nil,
+        onRemove: (() -> Void)? = nil
+    ) {
+        self.item = item
+        self.currencySymbol = currencySymbol
+        self.onUpdateQuantity = onUpdateQuantity
+        self.onRemove = onRemove
+    }
 
     public var body: some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .center, spacing: 6) {
+            // Item Name & Matched note
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(.body.weight(.medium))
@@ -17,20 +41,58 @@ public struct InvoiceItemRowView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("\(item.quantity.cleanFormatted) \(item.unit.shortLabel)")
-                .font(.callout)
-                .frame(width: 60, alignment: .trailing)
+            // Quantity stepper & controls
+            if let updateQty = onUpdateQuantity {
+                HStack(spacing: 4) {
+                    Button(action: {
+                        let newQty = max(0, item.quantity - stepAmount)
+                        updateQty(newQty)
+                    }) {
+                        Image(systemName: "minus.circle")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Decrease quantity")
 
-            Text("\(currencySymbol)\(item.unitPrice.cleanFormatted)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .frame(width: 70, alignment: .trailing)
+                    Text("\(item.quantity.cleanFormatted) \(item.unit.shortLabel)")
+                        .font(.callout.weight(.medium))
+                        .frame(minWidth: 48, alignment: .center)
 
+                    Button(action: {
+                        let newQty = item.quantity + stepAmount
+                        updateQty(newQty)
+                    }) {
+                        Image(systemName: "plus.circle")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Increase quantity")
+                }
+            } else {
+                Text("\(item.quantity.cleanFormatted) \(item.unit.shortLabel)")
+                    .font(.callout)
+                    .frame(width: 60, alignment: .trailing)
+            }
+
+            // Subtotal
             Text("\(currencySymbol)\(String(format: "%.2f", item.subtotal))")
                 .font(.callout.weight(.semibold))
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: 65, alignment: .trailing)
+
+            // Remove button
+            if let removeAction = onRemove {
+                Button(action: removeAction) {
+                    Image(systemName: "trash")
+                        .font(.caption2)
+                        .foregroundColor(.red.opacity(0.75))
+                }
+                .buttonStyle(.plain)
+                .help("Remove \(item.name) from bill")
+            }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
     }
 }
 

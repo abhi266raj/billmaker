@@ -98,13 +98,40 @@ final class BillCalculationTests: XCTestCase {
         XCTAssertEqual(bill.totalWeightKg, 3.0)
     }
 
+    func testCumulativeBillMergingCreateDuplicateDefault() {
+        let item1 = AgentParsedItem(itemName: "Potato", quantity: 1.0, unit: "kg", unitPrice: 30.0)
+        let bill1 = BillCalculator.mergeIntoBill(
+            existingBill: nil,
+            newParsedItems: [item1],
+            catalog: sampleCatalog,
+            policy: .createDuplicate
+        )
+        XCTAssertEqual(bill1.items.count, 1)
+        XCTAssertEqual(bill1.items[0].quantity, 1.0)
+        XCTAssertEqual(bill1.grandTotal, 30.0)
+
+        // Customer adds 2kg more potato in a second message: must create a duplicate line item (appears twice in bill)
+        let item2 = AgentParsedItem(itemName: "Potato", quantity: 2.0, unit: "kg", unitPrice: 30.0)
+        let bill2 = BillCalculator.mergeIntoBill(
+            existingBill: bill1,
+            newParsedItems: [item2],
+            catalog: sampleCatalog,
+            policy: .createDuplicate
+        )
+        XCTAssertEqual(bill2.items.count, 2) // Added twice in bill!
+        XCTAssertEqual(bill2.items[0].quantity, 1.0)
+        XCTAssertEqual(bill2.items[1].quantity, 2.0)
+        XCTAssertEqual(bill2.grandTotal, 90.0)
+        XCTAssertEqual(bill2.totalWeightKg, 3.0)
+    }
+
     func testCumulativeBillMergingAddToQuantity() {
         let item1 = AgentParsedItem(itemName: "Potato", quantity: 1.0, unit: "kg", unitPrice: 30.0)
         let bill1 = BillCalculator.mergeIntoBill(
             existingBill: nil,
             newParsedItems: [item1],
             catalog: sampleCatalog,
-            replaceExisting: false
+            policy: .addToQuantity
         )
         XCTAssertEqual(bill1.items.count, 1)
         XCTAssertEqual(bill1.items[0].quantity, 1.0)
@@ -116,7 +143,7 @@ final class BillCalculationTests: XCTestCase {
             existingBill: bill1,
             newParsedItems: [item2],
             catalog: sampleCatalog,
-            replaceExisting: false
+            policy: .addToQuantity
         )
         XCTAssertEqual(bill2.items.count, 1)
         XCTAssertEqual(bill2.items[0].quantity, 3.0) // 1.0 + 2.0 = 3.0 kg
@@ -128,7 +155,8 @@ final class BillCalculationTests: XCTestCase {
         let bill1 = BillCalculator.mergeIntoBill(
             existingBill: nil,
             newParsedItems: [item1],
-            catalog: sampleCatalog
+            catalog: sampleCatalog,
+            policy: .replaceQuantity
         )
         XCTAssertEqual(bill1.items[0].quantity, 1.0)
 
@@ -138,7 +166,7 @@ final class BillCalculationTests: XCTestCase {
             existingBill: bill1,
             newParsedItems: [item2],
             catalog: sampleCatalog,
-            replaceExisting: true
+            policy: .replaceQuantity
         )
         XCTAssertEqual(bill2.items.count, 1)
         XCTAssertEqual(bill2.items[0].quantity, 5.0) // Replaced with 5.0 kg
@@ -193,5 +221,31 @@ final class BillCalculationTests: XCTestCase {
         XCTAssertNil(appState.currentBill)
         XCTAssertFalse(appState.canUndo)
         XCTAssertEqual(appState.messages.last?.text, "Undid last action. Bill restored to previous state.")
+    }
+
+    @MainActor
+    func testAppStateLineItemQuantityEditAndRemoval() async throws {
+        let mockEngine = MockAIAgentEngine()
+        let appState = AppState(agentEngine: mockEngine)
+        appState.catalog = sampleCatalog
+
+        appState.processInput("2kg potato")
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        guard let firstItem = appState.currentBill?.items.first else {
+            XCTFail("Item not added to bill")
+            return
+        }
+        XCTAssertEqual(firstItem.quantity, 2.0)
+        XCTAssertEqual(appState.currentBill?.grandTotal, 60.0)
+
+        // Edit quantity to 4.0
+        appState.updateItemQuantity(itemId: firstItem.id, newQuantity: 4.0)
+        XCTAssertEqual(appState.currentBill?.items.first?.quantity, 4.0)
+        XCTAssertEqual(appState.currentBill?.grandTotal, 120.0)
+
+        // Remove item from bill
+        appState.removeItem(itemId: firstItem.id)
+        XCTAssertNil(appState.currentBill)
     }
 }

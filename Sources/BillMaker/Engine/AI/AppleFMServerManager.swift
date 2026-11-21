@@ -91,18 +91,22 @@ public final class AppleFMServerManager: @unchecked Sendable {
             ["role": "system", "content": systemPrompt]
         ]
 
-        // Append recent conversation context without repeating current user input
-        let recentHistory = conversationHistory.suffix(4)
-        for msg in recentHistory {
-            if msg.role == .user && msg.text == userInput { continue }
-            let role = (msg.role == .user) ? "user" : "assistant"
-            messages.append(["role": role, "content": msg.text])
+        // Keep session fast, isolated, and focused: append only the immediate prior turn if relevant,
+        // strictly ensuring assistant messages are JSON so the model never drifts to conversational text.
+        let validHistory = conversationHistory.filter { $0.status != .info && $0.role != .system }
+        if let lastAgentMsg = validHistory.last(where: { $0.role == .agent }),
+           let lastUserMsg = validHistory.last(where: { $0.role == .user && $0.text != userInput }) {
+            messages.append(["role": "user", "content": lastUserMsg.text])
+            let assistantPayload = lastAgentMsg.rawJsonOutput ?? "```json\n{\"status\":\"ready\",\"message\":\"\(lastAgentMsg.text)\"}\n```"
+            messages.append(["role": "assistant", "content": assistantPayload])
         }
         messages.append(["role": "user", "content": userInput])
 
         let body: [String: Any] = [
             "model": "system",
             "stream": false,
+            "temperature": 0.0,
+            "max_tokens": 180,
             "messages": messages
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: body)

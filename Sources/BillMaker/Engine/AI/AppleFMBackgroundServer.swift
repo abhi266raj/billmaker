@@ -36,7 +36,7 @@ private actor FMContinuousSessionActor {
         guard let s = session else {
             throw NSError(domain: "AppleFMServer", code: -1, userInfo: [NSLocalizedDescriptionKey: "FM Session could not be initialized."])
         }
-        let options = GenerationOptions(temperature: 0.1, maximumResponseTokens: 250)
+        let options = GenerationOptions(temperature: 0.0, maximumResponseTokens: 180)
         let res = try await s.respond(to: userInput, options: options)
         return res.content
     }

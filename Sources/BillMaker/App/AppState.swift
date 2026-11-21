@@ -2,26 +2,13 @@ import Foundation
 import SwiftUI
 import Combine
 
-public enum DuplicateItemPolicy: String, CaseIterable, Identifiable {
-    case addToQuantity = "add"
-    case replaceQuantity = "replace"
-
-    public var id: String { rawValue }
-    public var displayName: String {
-        switch self {
-        case .addToQuantity: return "Add to Quantity"
-        case .replaceQuantity: return "Replace Quantity"
-        }
-    }
-}
-
 @MainActor
 public final class AppState: ObservableObject {
     @Published public var catalog: [Item] = []
     @Published public var messages: [AgentMessage] = []
     @Published public var currentBill: BillSummary? = nil
     @Published public var settings: AppSettings = .defaultSettings
-    @Published public var duplicatePolicy: DuplicateItemPolicy = .addToQuantity
+    @Published public var duplicatePolicy: DuplicateItemPolicy = .createDuplicate
     @Published public var isProcessing: Bool = false
     @Published public var errorMessage: String? = nil
     @Published public var canUndo: Bool = false
@@ -41,7 +28,9 @@ public final class AppState: ObservableObject {
         self.settingsStorage = settingsStorage
         self.agentEngine = agentEngine
 
-        self.settings = settingsStorage.loadSettings()
+        let loadedSettings = settingsStorage.loadSettings()
+        self.settings = loadedSettings
+        self.duplicatePolicy = loadedSettings.duplicateItemPolicy
         self.catalog = catalogStorage.loadCatalog()
         setupWelcomeMessage()
         prewarmEngine()
@@ -111,7 +100,7 @@ public final class AppState: ObservableObject {
                         catalog: self.catalog,
                         currencySymbol: self.settings.currencySymbol,
                         taxRatePercent: self.settings.taxRatePercent,
-                        replaceExisting: self.duplicatePolicy == .replaceQuantity
+                        policy: self.duplicatePolicy
                     )
                 }
 
@@ -153,6 +142,60 @@ public final class AppState: ObservableObject {
                 status: .info
             )
         )
+    }
+
+    // MARK: - Live Bill Line-Item Editing & Deletion
+
+    /// Updates the quantity of a specific billed item in the active invoice.
+    public func updateItemQuantity(itemId: UUID, newQuantity: Double) {
+        guard var bill = currentBill else { return }
+        guard let idx = bill.items.firstIndex(where: { $0.id == itemId }) else { return }
+
+        if newQuantity <= 0 {
+            removeItem(itemId: itemId)
+            return
+        }
+
+        self.billHistory.append(self.currentBill)
+        self.canUndo = true
+
+        var updatedItem = bill.items[idx]
+        updatedItem.quantity = newQuantity
+        updatedItem.subtotal = newQuantity * updatedItem.unitPrice
+        if updatedItem.unit == .kg {
+            updatedItem.weightInKg = newQuantity
+        } else if updatedItem.unit == .gram {
+            updatedItem.weightInKg = newQuantity / 1000.0
+        }
+        bill.items[idx] = updatedItem
+
+        self.currentBill = BillCalculator.recalculateBill(
+            items: bill.items,
+            currencySymbol: settings.currencySymbol,
+            taxRatePercent: settings.taxRatePercent,
+            existingId: bill.id,
+            createdAt: bill.createdAt
+        )
+    }
+
+    /// Removes a specific billed line item from the active invoice.
+    public func removeItem(itemId: UUID) {
+        guard var bill = currentBill else { return }
+        self.billHistory.append(self.currentBill)
+        self.canUndo = true
+
+        bill.items.removeAll(where: { $0.id == itemId })
+        if bill.items.isEmpty {
+            self.currentBill = nil
+        } else {
+            self.currentBill = BillCalculator.recalculateBill(
+                items: bill.items,
+                currencySymbol: settings.currencySymbol,
+                taxRatePercent: settings.taxRatePercent,
+                existingId: bill.id,
+                createdAt: bill.createdAt
+            )
+        }
     }
 
     public func clearConversation() {
@@ -205,6 +248,7 @@ public final class AppState: ObservableObject {
     // MARK: - Settings Management
 
     public func saveSettings() {
+        settings.duplicateItemPolicy = duplicatePolicy
         settingsStorage.saveSettings(settings)
         prewarmEngine()
     }

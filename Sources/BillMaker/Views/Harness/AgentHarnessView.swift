@@ -30,6 +30,12 @@ public struct AgentHarnessView: View {
                 canUndo: appState.canUndo,
                 onUndo: { appState.undo() },
                 onReset: { appState.resetBill() },
+                onUpdateQuantity: { itemId, newQty in
+                    appState.updateItemQuantity(itemId: itemId, newQuantity: newQty)
+                },
+                onRemoveItem: { itemId in
+                    appState.removeItem(itemId: itemId)
+                },
                 onInspectJson: {
                     if let rawJson = appState.messages.last(where: { $0.rawJsonOutput != nil })?.rawJsonOutput {
                         inspectingJson = rawJson

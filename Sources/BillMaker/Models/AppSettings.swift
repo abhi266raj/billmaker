@@ -58,12 +58,55 @@ public enum AudioRecognitionLanguage: String, Codable, CaseIterable, Identifiabl
     }
 }
 
+/// Policy when an item is re-entered during a live billing session.
+public enum DuplicateItemPolicy: String, Codable, CaseIterable, Identifiable {
+    case createDuplicate = "duplicate"
+    case addToQuantity = "add"
+    case replaceQuantity = "replace"
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .createDuplicate:
+            return "Create Duplicate Item (Add Twice)"
+        case .addToQuantity:
+            return "Add to Quantity (Combine)"
+        case .replaceQuantity:
+            return "Replace Quantity (Overwrite)"
+        }
+    }
+
+    public var shortLabel: String {
+        switch self {
+        case .createDuplicate:
+            return "Duplicate Line"
+        case .addToQuantity:
+            return "Add to Qty"
+        case .replaceQuantity:
+            return "Replace Qty"
+        }
+    }
+
+    public var descriptionText: String {
+        switch self {
+        case .createDuplicate:
+            return "Adds each entry as a separate line item in the bill, even if the item already exists."
+        case .addToQuantity:
+            return "Sums the newly entered quantity with the existing item quantity."
+        case .replaceQuantity:
+            return "Replaces the existing item's quantity with the new quantity specified."
+        }
+    }
+}
+
 /// Application settings including store billing preferences and voice dictation configuration.
 /// Powered 100% on-device by Apple Foundation Models (Apple Intelligence).
 public struct AppSettings: Codable {
     public var executionMode: AppleFMExecutionMode
     public var currencySymbol: String
     public var taxRatePercent: Double
+    public var duplicateItemPolicy: DuplicateItemPolicy
     public var enableHapticFeedback: Bool
     public var showThoughtProcessByDefault: Bool
     public var speechLocaleIdentifier: String
@@ -77,6 +120,7 @@ public struct AppSettings: Codable {
         executionMode: AppleFMExecutionMode = .backgroundDaemon,
         currencySymbol: String = "₹",
         taxRatePercent: Double = 0.0,
+        duplicateItemPolicy: DuplicateItemPolicy = .createDuplicate,
         enableHapticFeedback: Bool = true,
         showThoughtProcessByDefault: Bool = true,
         speechLocaleIdentifier: String = "en-IN"
@@ -84,6 +128,7 @@ public struct AppSettings: Codable {
         self.executionMode = executionMode
         self.currencySymbol = currencySymbol
         self.taxRatePercent = taxRatePercent
+        self.duplicateItemPolicy = duplicateItemPolicy
         self.enableHapticFeedback = enableHapticFeedback
         self.showThoughtProcessByDefault = showThoughtProcessByDefault
         self.speechLocaleIdentifier = speechLocaleIdentifier
@@ -94,6 +139,7 @@ public struct AppSettings: Codable {
         self.executionMode = try container.decodeIfPresent(AppleFMExecutionMode.self, forKey: .executionMode) ?? .backgroundDaemon
         self.currencySymbol = try container.decodeIfPresent(String.self, forKey: .currencySymbol) ?? "₹"
         self.taxRatePercent = try container.decodeIfPresent(Double.self, forKey: .taxRatePercent) ?? 0.0
+        self.duplicateItemPolicy = try container.decodeIfPresent(DuplicateItemPolicy.self, forKey: .duplicateItemPolicy) ?? .createDuplicate
         self.enableHapticFeedback = try container.decodeIfPresent(Bool.self, forKey: .enableHapticFeedback) ?? true
         self.showThoughtProcessByDefault = try container.decodeIfPresent(Bool.self, forKey: .showThoughtProcessByDefault) ?? true
         self.speechLocaleIdentifier = try container.decodeIfPresent(String.self, forKey: .speechLocaleIdentifier) ?? "en-IN"

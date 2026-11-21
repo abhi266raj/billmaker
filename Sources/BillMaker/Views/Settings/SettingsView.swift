@@ -68,6 +68,23 @@ public struct SettingsView: View {
                 }
             }
 
+            Section(header: Text("Live Bill Item Handling Policy")) {
+                Picker("When Item is Re-entered", selection: $appState.settings.duplicateItemPolicy) {
+                    ForEach(DuplicateItemPolicy.allCases) { policy in
+                        Text(policy.displayName).tag(policy)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .onChange(of: appState.settings.duplicateItemPolicy) { newPolicy in
+                    appState.duplicatePolicy = newPolicy
+                    appState.saveSettings()
+                }
+
+                Text(appState.settings.duplicateItemPolicy.descriptionText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
             Section(header: Text("Voice & Speech Recognition Configuration")) {
                 HStack {
                     Text("Audio Recognition Language:")

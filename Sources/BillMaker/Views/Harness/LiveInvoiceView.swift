@@ -6,6 +6,8 @@ public struct LiveInvoiceView: View {
     let canUndo: Bool
     let onUndo: () -> Void
     let onReset: () -> Void
+    var onUpdateQuantity: ((UUID, Double) -> Void)? = nil
+    var onRemoveItem: ((UUID) -> Void)? = nil
     let onInspectJson: (() -> Void)?
 
     public init(
@@ -14,6 +16,8 @@ public struct LiveInvoiceView: View {
         canUndo: Bool = false,
         onUndo: @escaping () -> Void = {},
         onReset: @escaping () -> Void,
+        onUpdateQuantity: ((UUID, Double) -> Void)? = nil,
+        onRemoveItem: ((UUID) -> Void)? = nil,
         onInspectJson: (() -> Void)? = nil
     ) {
         self.bill = bill
@@ -21,6 +25,8 @@ public struct LiveInvoiceView: View {
         self.canUndo = canUndo
         self.onUndo = onUndo
         self.onReset = onReset
+        self.onUpdateQuantity = onUpdateQuantity
+        self.onRemoveItem = onRemoveItem
         self.onInspectJson = onInspectJson
     }
 
@@ -96,17 +102,17 @@ public struct LiveInvoiceView: View {
 
     private var policyBar: some View {
         HStack(spacing: 8) {
-            Text("If item re-entered:")
+            Text("Re-entry Policy:")
                 .font(.caption2)
                 .foregroundColor(.secondary)
 
             Picker("", selection: $duplicatePolicy) {
                 ForEach(DuplicateItemPolicy.allCases) { policy in
-                    Text(policy.displayName).tag(policy)
+                    Text(policy.shortLabel).tag(policy)
                 }
             }
             .pickerStyle(.segmented)
-            .frame(maxWidth: 240)
+            .frame(maxWidth: 280)
         }
         .padding(.horizontal)
         .padding(.vertical, 6)
@@ -130,7 +136,12 @@ public struct LiveInvoiceView: View {
             VStack(spacing: 8) {
                 tableColumnHeader
                 ForEach(bill.items) { item in
-                    InvoiceItemRowView(item: item, currencySymbol: bill.currencySymbol)
+                    InvoiceItemRowView(
+                        item: item,
+                        currencySymbol: bill.currencySymbol,
+                        onUpdateQuantity: onUpdateQuantity != nil ? { newQty in onUpdateQuantity?(item.id, newQty) } : nil,
+                        onRemove: onRemoveItem != nil ? { onRemoveItem?(item.id) } : nil
+                    )
                 }
             }
 
