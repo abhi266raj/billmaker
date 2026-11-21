@@ -30,6 +30,7 @@
 		A5FA34C33068E14551057D62 /* AppleFMBackgroundServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */; };
 		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
+		ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */; };
 		B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */; };
 		BC08531B5C8ABD428CF7C672 /* AppleFMAgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */; };
 		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
@@ -38,9 +39,11 @@
 		CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */; };
 		D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5214870783E7496732F39D /* AgentMessage.swift */; };
 		DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */; };
+		EA40491A041A462AD3A06D7E /* ParsingDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0171960EA96B11E40CC702 /* ParsingDiagnosticsView.swift */; };
 		EC6F666D4584A665FFC0A917 /* CatalogStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B1DD197103CD20566A36E /* CatalogStorageService.swift */; };
 		F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */; };
 		F5FCCB83CBE9FFE88D0CD014 /* AppleFMServerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B10CC35072B03B55EF3EF41 /* AppleFMServerManager.swift */; };
+		FA638FC0B3459051637C4C52 /* ParsingDiagnosticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */; };
 		FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */; };
 /* End PBXBuildFile section */
 
@@ -61,10 +64,12 @@
 		1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DefaultCatalog.json; sourceTree = "<group>"; };
 		21D97D8C44B1BF3998FDFB75 /* Bill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bill.swift; sourceTree = "<group>"; };
 		2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentResponseBuilder.swift; sourceTree = "<group>"; };
+		2F0171960EA96B11E40CC702 /* ParsingDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingDiagnosticsView.swift; sourceTree = "<group>"; };
 		2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMParsingTests.swift; sourceTree = "<group>"; };
 		31814D047DFD89075E97FF9D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSuggestionBar.swift; sourceTree = "<group>"; };
 		3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceCardComponents.swift; sourceTree = "<group>"; };
+		44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingDiagnosticsLogger.swift; sourceTree = "<group>"; };
 		46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		4D5214870783E7496732F39D /* AgentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMessage.swift; sourceTree = "<group>"; };
 		5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMBackgroundServer.swift; sourceTree = "<group>"; };
@@ -77,6 +82,7 @@
 		83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
 		8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMResponseParser.swift; sourceTree = "<group>"; };
 		8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
+		94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCatalogMatcher.swift; sourceTree = "<group>"; };
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
 		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
@@ -156,6 +162,7 @@
 				950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */,
 				CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */,
 				F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */,
+				2F0171960EA96B11E40CC702 /* ParsingDiagnosticsView.swift */,
 				F6B6621A7009B7F437062A5F /* Components */,
 			);
 			path = Harness;
@@ -239,8 +246,10 @@
 				6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */,
 				5A6612DA82366B0CFC64F6C2 /* AppleFMBackgroundServer.swift */,
 				1B10CC35072B03B55EF3EF41 /* AppleFMServerManager.swift */,
+				94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */,
 				A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */,
 				8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */,
+				44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */,
 			);
 			path = AI;
 			sourceTree = "<group>";
@@ -387,12 +396,15 @@
 				123234272817B8327A060678 /* Double+Formatting.swift in Sources */,
 				75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */,
 				A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */,
+				ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */,
 				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
 				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
 				B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */,
 				7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */,
 				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
 				500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */,
+				FA638FC0B3459051637C4C52 /* ParsingDiagnosticsLogger.swift in Sources */,
+				EA40491A041A462AD3A06D7E /* ParsingDiagnosticsView.swift in Sources */,
 				F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */,
 				C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */,
 				C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */,
