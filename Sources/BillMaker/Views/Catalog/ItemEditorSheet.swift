@@ -99,7 +99,7 @@ public struct ItemEditorSheet: View {
 
     private func saveItem() {
         let item = Item(
-            id: existingItem?.id ?? UUID(),
+            id: existingItem?.id ?? UUID().uuidString,
             name: name.trimmingCharacters(in: .whitespaces),
             unitType: unitType,
             pricePerUnit: pricePerUnit,

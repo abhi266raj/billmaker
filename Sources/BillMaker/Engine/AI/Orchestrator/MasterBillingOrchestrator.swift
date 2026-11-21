@@ -70,7 +70,7 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
                     let unit = verification.resolvedUnit ?? (catalogItem.unitType.shortLabel)
 
                     let parsedItem = AgentParsedItem(
-                        itemId: catalogItem.id.uuidString,
+                        itemId: catalogItem.id,
                         itemName: catalogItem.name,
                         quantity: qty,
                         unit: unit,
@@ -127,15 +127,19 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
         catalog: [Item],
         settings: AppSettings
     ) async -> ClarificationOutput {
-        // Deterministic business rule check first
-        if let deterministic = ItemCatalogMatcher.resolveClarificationChoice(userInput: userInput, pending: pending, catalog: catalog) {
+        // Check if user directly named one of the candidate options
+        let cleanInput = userInput.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if let match = pending.candidateNames.first(where: { cand in
+            let cLower = cand.lowercased()
+            return cleanInput == cLower || cleanInput.contains(cLower) || cLower.contains(cleanInput)
+        }) {
             return ClarificationOutput(
-                thought: "Deterministic match found in candidate options.",
+                thought: "User matched candidate option '\(match)'.",
                 isRealClarification: true,
-                selectedItemName: deterministic.item.name,
-                resolvedQuantity: deterministic.quantity,
-                resolvedUnit: deterministic.unit,
-                reason: "Matched candidate option '\(deterministic.item.name)'",
+                selectedItemName: match,
+                resolvedQuantity: pending.quantity,
+                resolvedUnit: pending.unit,
+                reason: "Matched candidate option '\(match)'",
                 fallbackToInitial: false
             )
         }
@@ -240,7 +244,8 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
                 content: rawOutput,
                 catalog: catalog,
                 settings: settings,
-                userInput: userInput
+                userInput: userInput,
+                requestSent: spec.instructions
             )
 
             // Guardian of Business Rules:
@@ -261,7 +266,8 @@ public final class MasterBillingOrchestrator: @unchecked Sendable {
                 outcome: .networkError,
                 rootCauseAnalysis: "Master Orchestrator execution error: \(errMsg)",
                 executionMode: "AgentAtom",
-                itemsParsedCount: 0
+                itemsParsedCount: 0,
+                requestSent: spec.instructions
             )
 
             return AgentMessage(

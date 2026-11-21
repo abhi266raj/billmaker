@@ -2,7 +2,7 @@ import Foundation
 
 public struct BilledItem: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
-    public var itemId: UUID?
+    public var itemId: String?
     public var name: String
     public var matchedAlias: String?
     public var quantity: Double
@@ -13,7 +13,7 @@ public struct BilledItem: Identifiable, Codable, Hashable, Sendable {
 
     public init(
         id: UUID = UUID(),
-        itemId: UUID? = nil,
+        itemId: String? = nil,
         name: String,
         matchedAlias: String? = nil,
         quantity: Double,

@@ -23,8 +23,8 @@ public struct BillCalculator {
         catalog: [Item]
     ) -> BilledItem {
         let matchedCatalogItem: Item? = {
-            if let idStr = parsed.itemId, let uuid = UUID(uuidString: idStr) {
-                if let found = catalog.first(where: { $0.id == uuid }) {
+            if let idStr = parsed.itemId {
+                if let found = catalog.first(where: { $0.id == idStr }) {
                     return found
                 }
             }
@@ -41,12 +41,7 @@ public struct BillCalculator {
             }) {
                 return match
             }
-            // 3. Colloquial alias match
-            return catalog.first { cat in
-                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
-                    alias == cleanName || (alias.count >= 4 && (cleanName.contains(alias) || alias.contains(cleanName)))
-                }
-            }
+            return nil
         }()
 
         let unitPrice = parsed.unitPrice ?? matchedCatalogItem?.pricePerUnit ?? 0.0

@@ -578,18 +578,24 @@ public struct AgentJsonPayload: Codable, Sendable {
         var resClarification = try? container.decodeIfPresent(PendingClarification.self, forKey: DynamicCodingKeys(stringValue: "pendingClarification")!)
 
         // Auto-populate clarification from needClarification
-        if let firstNeed = resNeedClarification?.first {
+        if let needs = resNeedClarification, !needs.isEmpty {
             resStatus = "needs_clarification"
+            var allCandidateOptions: [String] = []
+            for n in needs {
+                allCandidateOptions.append(contentsOf: n.options)
+            }
             if resOptions == nil || resOptions!.isEmpty {
-                resOptions = firstNeed.options
+                resOptions = allCandidateOptions
                 self.options = resOptions
             }
             if resClarification == nil {
+                let allQueries = needs.map { $0.item }.joined(separator: ", ")
+                let firstNeed = needs[0]
                 resClarification = PendingClarification(
-                    query: firstNeed.item,
+                    query: allQueries,
                     quantity: firstNeed.quantity,
                     unit: firstNeed.unit,
-                    candidateNames: firstNeed.options
+                    candidateNames: allCandidateOptions
                 )
             }
         } else if (resItems == nil || resItems!.isEmpty) && (resRejected?.isEmpty == false) {

@@ -20,6 +20,7 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
     public let rootCauseAnalysis: String
     public let executionMode: String
     public let itemsParsedCount: Int
+    public let requestSent: String?
 
     public init(
         id: UUID = UUID(),
@@ -30,7 +31,8 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
         outcome: ParsingOutcome,
         rootCauseAnalysis: String,
         executionMode: String = "AgentAtom",
-        itemsParsedCount: Int = 0
+        itemsParsedCount: Int = 0,
+        requestSent: String? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -41,6 +43,7 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
         self.rootCauseAnalysis = rootCauseAnalysis
         self.executionMode = executionMode
         self.itemsParsedCount = itemsParsedCount
+        self.requestSent = requestSent
     }
 
     public var isFailure: Bool {
@@ -83,7 +86,8 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
         outcome: ParsingOutcome,
         rootCauseAnalysis: String,
         executionMode: String = "AgentAtom",
-        itemsParsedCount: Int = 0
+        itemsParsedCount: Int = 0,
+        requestSent: String? = nil
     ) {
         let record = ParsingDiagnosticsRecord(
             userInput: userInput,
@@ -92,7 +96,8 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
             outcome: outcome,
             rootCauseAnalysis: rootCauseAnalysis,
             executionMode: executionMode,
-            itemsParsedCount: itemsParsedCount
+            itemsParsedCount: itemsParsedCount,
+            requestSent: requestSent
         )
 
         let updateInMemory = { [weak self] in

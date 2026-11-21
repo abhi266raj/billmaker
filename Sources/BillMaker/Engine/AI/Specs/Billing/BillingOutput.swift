@@ -222,7 +222,8 @@ extension BillingOutput {
         content: String,
         catalog: [Item],
         settings: AppSettings,
-        userInput: String = ""
+        userInput: String = "",
+        requestSent: String? = nil
     ) -> AgentMessage {
         var cleanContent = content
             .replacingOccurrences(of: "<start_of_turn>model", with: "")
@@ -275,7 +276,8 @@ extension BillingOutput {
                 outcome: lastDecodingError != nil ? .decodingError : .missingJson,
                 rootCauseAnalysis: rootCause,
                 executionMode: "AgentAtom",
-                itemsParsedCount: 0
+                itemsParsedCount: 0,
+                requestSent: requestSent
             )
 
             return AgentMessage(
@@ -328,7 +330,8 @@ extension BillingOutput {
                 outcome: .clarification,
                 rootCauseAnalysis: "Item not found in catalog: \"\(msg)\"",
                 executionMode: "AgentAtom",
-                itemsParsedCount: 0
+                itemsParsedCount: 0,
+                requestSent: requestSent
             )
 
             return AgentMessage(
@@ -341,9 +344,9 @@ extension BillingOutput {
             )
         }
 
-        // 3b. Clarification check: Status "needs_clarification", or needClarification present with empty verified, or empty items with a clarifying question/confirmation
+        // 3b. Clarification check: Status "needs_clarification", or needClarification present, or empty items with a clarifying question/confirmation
         let isClarificationRequest = payload.status == "needs_clarification"
-            || (!hasVerifiedItems && hasClarificationItems)
+            || hasClarificationItems
             || (payload.items?.isEmpty == true && (
                 payload.message.contains("?") ||
                 payload.message.localizedCaseInsensitiveContains("confirm") ||
@@ -358,28 +361,21 @@ extension BillingOutput {
             let specificMatches = catalog.filter { cat in
                 !cleanUser.isEmpty && (
                     cleanUser.localizedCaseInsensitiveContains(cat.name) ||
-                    cat.name.localizedCaseInsensitiveContains(cleanUser) ||
-                    ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
-                        alias.count >= 4 && cleanUser.localizedCaseInsensitiveContains(alias)
-                    }
+                    cat.name.localizedCaseInsensitiveContains(cleanUser)
                 )
             }
 
-            // If user's input explicitly matches exactly ONE catalog item and is not a generic query (like "oil" or "tel"),
-            // DO NOT repeat the clarification! Resolve it directly to ready!
-            if specificMatches.count == 1, let matched = specificMatches.first, !ItemCatalogMatcher.isGenericOilQuery(cleanUser) {
+            // If user's input explicitly matches exactly ONE catalog item and no verified items were already parsed, resolve it directly to ready!
+            if !hasClarificationItems && !hasVerifiedItems && specificMatches.count == 1, let matched = specificMatches.first {
                 let qty = payload.pendingClarification?.quantity ?? 1.0
                 let unit = payload.pendingClarification?.unit.isEmpty == false
                     ? payload.pendingClarification!.unit
                     : matched.unitType.shortLabel
 
-                var unitPrice = matched.pricePerUnit
-                if let customPrice = ItemCatalogMatcher.extractExplicitPrice(for: matched.name, from: userInput) {
-                    unitPrice = customPrice
-                }
+                let unitPrice = matched.pricePerUnit
 
                 let resolvedItem = AgentParsedItem(
-                    itemId: matched.id.uuidString,
+                    itemId: matched.id,
                     itemName: matched.name,
                     quantity: qty,
                     unit: unit,
@@ -400,7 +396,8 @@ extension BillingOutput {
                     outcome: .autoRescued,
                     rootCauseAnalysis: "Auto-resolved clarification because user specified exact catalog item '\(matched.name)'.",
                     executionMode: "AgentAtom",
-                    itemsParsedCount: 1
+                    itemsParsedCount: 1,
+                    requestSent: requestSent
                 )
 
                 return AgentMessage(
@@ -415,7 +412,19 @@ extension BillingOutput {
                 )
             }
 
-            var candidateNames: [String] = {
+            var allCandidateNames: [String] = []
+            var allQueries: [String] = []
+            if let needList = payload.needClarification, !needList.isEmpty {
+                for need in needList {
+                    allQueries.append(need.item)
+                    allCandidateNames.append(contentsOf: need.options)
+                }
+            }
+
+            let candidateNames: [String] = {
+                if !allCandidateNames.isEmpty {
+                    return Array(Set(allCandidateNames)).sorted()
+                }
                 if let firstNeed = payload.needClarification?.first, !firstNeed.options.isEmpty {
                     return firstNeed.options
                 }
@@ -431,20 +440,28 @@ extension BillingOutput {
                 }.map { $0.name }
             }()
 
-            // If query was generic like "oil" / "tel", ensure available oils in catalog are included
-            if ItemCatalogMatcher.isGenericOilQuery(userInput) || ItemCatalogMatcher.isGenericOilQuery(payload.message) {
-                let allOils = catalog.filter { $0.name.localizedCaseInsensitiveContains("oil") }.map { $0.name }
-                if !allOils.isEmpty {
-                    candidateNames = Array(Set(candidateNames + allOils)).sorted()
+            let pendingClarification: PendingClarification = {
+                if let existing = payload.pendingClarification {
+                    var mergedCandidates = existing.candidateNames
+                    for c in candidateNames {
+                        if !mergedCandidates.contains(c) {
+                            mergedCandidates.append(c)
+                        }
+                    }
+                    return PendingClarification(
+                        query: existing.query.isEmpty ? (allQueries.isEmpty ? userInput : allQueries.joined(separator: ", ")) : existing.query,
+                        quantity: existing.quantity,
+                        unit: existing.unit,
+                        candidateNames: mergedCandidates.isEmpty ? candidateNames : mergedCandidates
+                    )
                 }
-            }
-
-            let pendingClarification = payload.pendingClarification ?? PendingClarification(
-                query: userInput.isEmpty ? payload.message : userInput,
-                quantity: 1.0,
-                unit: "pc",
-                candidateNames: candidateNames
-            )
+                return PendingClarification(
+                    query: allQueries.isEmpty ? (userInput.isEmpty ? payload.message : userInput) : allQueries.joined(separator: ", "),
+                    quantity: payload.needClarification?.first?.quantity ?? 1.0,
+                    unit: payload.needClarification?.first?.unit ?? "pc",
+                    candidateNames: candidateNames
+                )
+            }()
 
             ParsingDiagnosticsLogger.shared.log(
                 userInput: userInput,
@@ -453,7 +470,8 @@ extension BillingOutput {
                 outcome: .clarification,
                 rootCauseAnalysis: "Clarification requested: \"\(payload.message)\" (Options: \(candidateNames.joined(separator: ", ")))",
                 executionMode: "AgentAtom",
-                itemsParsedCount: 0
+                itemsParsedCount: 0,
+                requestSent: requestSent
             )
 
             let verifiedItems: [AgentParsedItem]? = (payload.items?.isEmpty == false) ? payload.items : nil
@@ -490,79 +508,6 @@ extension BillingOutput {
             )
         }
 
-        // 3c. Generic Oil Ambiguity Safeguard
-        if ItemCatalogMatcher.isGenericOilQuery(userInput) {
-            let oilCandidates = catalog.filter { $0.name.localizedCaseInsensitiveContains("oil") }.map { $0.name }
-            if !oilCandidates.isEmpty {
-                var promptMsg: String
-                if oilCandidates.count == 1 {
-                    let single = catalog.first { $0.name == oilCandidates[0] }
-                    let priceStr = single != nil ? " (\(settings.currencySymbol)\(single!.pricePerUnit)/\(single!.unitType.shortLabel))" : ""
-                    promptMsg = "We have \(oilCandidates[0])\(priceStr). Did you mean \(oilCandidates[0])?"
-                } else {
-                    let desc = oilCandidates.map { name in
-                        if let itm = catalog.first(where: { $0.name == name }) {
-                            return "\(name) (\(settings.currencySymbol)\(itm.pricePerUnit)/\(itm.unitType.shortLabel))"
-                        }
-                        return name
-                    }.joined(separator: " or ")
-                    promptMsg = "Which oil would you like? We have \(desc)."
-                }
-
-                let nonOilItems: [AgentParsedItem] = (payload.items ?? []).filter {
-                    !$0.itemName.localizedCaseInsensitiveContains("oil")
-                }
-                let verifiedItems: [AgentParsedItem]? = nonOilItems.isEmpty ? nil : nonOilItems
-                let summary: BillSummary? = {
-                    if let v = verifiedItems, !v.isEmpty {
-                        return BillCalculator.computeBill(
-                            from: v,
-                            catalog: catalog,
-                            currencySymbol: settings.currencySymbol,
-                            taxRatePercent: settings.taxRatePercent
-                        )
-                    }
-                    return nil
-                }()
-
-                if let verified = verifiedItems, !verified.isEmpty {
-                    let verifiedDesc = verified.map { "\($0.quantity.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int($0.quantity))" : "\($0.quantity)") \($0.unit) \($0.itemName)" }.joined(separator: ", ")
-                    if !promptMsg.localizedCaseInsensitiveContains(verified[0].itemName) {
-                        promptMsg = "Added \(verifiedDesc) to the bill.\n\(promptMsg)"
-                    }
-                }
-
-                let pending = PendingClarification(
-                    query: userInput,
-                    quantity: payload.items?.first(where: { $0.itemName.localizedCaseInsensitiveContains("oil") })?.quantity ?? 1.0,
-                    unit: payload.items?.first(where: { $0.itemName.localizedCaseInsensitiveContains("oil") })?.unit ?? "L",
-                    candidateNames: oilCandidates
-                )
-
-                ParsingDiagnosticsLogger.shared.log(
-                    userInput: userInput,
-                    rawLLMOutput: content,
-                    extractedJson: extractedJson,
-                    outcome: .clarification,
-                    rootCauseAnalysis: "Generic oil query converted to clarification: \(promptMsg)",
-                    executionMode: "AgentAtom",
-                    itemsParsedCount: verifiedItems?.count ?? 0
-                )
-
-                return AgentMessage(
-                    role: .agent,
-                    text: promptMsg,
-                    thoughtProcess: thought ?? "Customer requested generic oil; asking clarification between catalog oils.",
-                    rawJsonOutput: extractedJson,
-                    status: .needsClarification,
-                    billSummary: summary,
-                    parsedItems: verifiedItems,
-                    pendingClarification: pending,
-                    canUndo: verifiedItems != nil
-                )
-            }
-        }
-
         var items = payload.items ?? []
         var wasAutoRescued = false
         if items.isEmpty {
@@ -570,7 +515,7 @@ extension BillingOutput {
                 if payload.message.localizedCaseInsensitiveContains(catItem.name) {
                     items.append(
                         AgentParsedItem(
-                            itemId: catItem.id.uuidString,
+                            itemId: catItem.id,
                             itemName: catItem.name,
                             quantity: 1.0,
                             unit: catItem.unitType.shortLabel,
@@ -592,7 +537,8 @@ extension BillingOutput {
                 outcome: .decodingError,
                 rootCauseAnalysis: rootCause,
                 executionMode: "AgentAtom",
-                itemsParsedCount: 0
+                itemsParsedCount: 0,
+                requestSent: requestSent
             )
 
             return AgentMessage(
@@ -605,49 +551,11 @@ extension BillingOutput {
             )
         }
 
-        // 3d. False Match / Hallucination Prevention & Mixed Multi-Item Matching
+        // 3d. Note for rejected items
         var partialNote: String? = nil
         if let rejected = payload.rejected, !rejected.isEmpty {
             let names = rejected.map(\.item).joined(separator: ", ")
             partialNote = "Note: Requested item(s) '\(names)' not in store catalog and excluded from bill."
-        }
-        if !userInput.isEmpty {
-            var validItems: [AgentParsedItem] = []
-
-            for item in items {
-                let matches = ItemCatalogMatcher.itemMatchesUserInput(itemName: item.itemName, userInput: userInput)
-                if matches {
-                    validItems.append(item)
-                }
-            }
-
-            if validItems.isEmpty {
-                let requestedSubject = ItemCatalogMatcher.extractRequestedItemSubject(from: userInput) ?? "item"
-                let notFoundText = "No match found. Item '\(requestedSubject)' was not found in the store catalog."
-                let rca = "Prevented false match: customer requested '\(requestedSubject)', model hallucinated '\(items.map(\.itemName).joined(separator: ", "))'."
-
-                ParsingDiagnosticsLogger.shared.log(
-                    userInput: userInput,
-                    rawLLMOutput: content,
-                    extractedJson: extractedJson,
-                    outcome: .clarification,
-                    rootCauseAnalysis: rca,
-                    executionMode: "AgentAtom",
-                    itemsParsedCount: 0
-                )
-
-                return AgentMessage(
-                    role: .agent,
-                    text: notFoundText,
-                    thoughtProcess: thought ?? rca,
-                    rawJsonOutput: extractedJson,
-                    status: .notFound,
-                    canUndo: false
-                )
-            } else if validItems.count < items.count {
-                items = validItems
-                partialNote = "Note: Requested item not in store catalog was excluded."
-            }
         }
 
         // 4. Thought process
@@ -704,7 +612,8 @@ extension BillingOutput {
             outcome: outcome,
             rootCauseAnalysis: analysis,
             executionMode: "AgentAtom",
-            itemsParsedCount: items.count
+            itemsParsedCount: items.count,
+            requestSent: requestSent
         )
 
         return AgentMessage(
@@ -1024,22 +933,31 @@ extension BillingOutput {
         var remainingVerified: [AgentParsedItem] = []
         for item in verifiedItems {
             let catItem: Item? = {
-                if let idStr = item.itemId, let uuid = UUID(uuidString: idStr) {
-                    return catalog.first(where: { $0.id == uuid })
+                if let idStr = item.itemId {
+                    if let found = catalog.first(where: { $0.id == idStr }) {
+                        return found
+                    }
                 }
                 let clean = item.itemName.lowercased().trimmingCharacters(in: .whitespaces)
                 return catalog.first(where: { $0.name.lowercased() == clean })
             }()
 
             if let catItem = catItem, catItem.sellingType == .packet {
-                if item.quantity.truncatingRemainder(dividingBy: 1.0) != 0 {
+                let uLower = item.unit.lowercased()
+                let isLooseWeightOrVolume = (uLower == "kg" || uLower == "g" || uLower == "gram" || uLower == "grams" || uLower == "l" || uLower == "litre" || uLower == "liter" || uLower == "ml")
+                let isFractional = item.quantity.truncatingRemainder(dividingBy: 1.0) != 0
+
+                if isFractional || isLooseWeightOrVolume {
+                    let reason = isLooseWeightOrVolume
+                        ? "\(catItem.name) is sold in \(catItem.packetSize ?? "standard") packets, not by \(item.unit). Please specify whole packets."
+                        : "Packets cannot be divided into fractional units. Please specify whole packets."
                     clarificationItems.append(
                         AgentClarificationNeedItem(
                             item: catItem.name,
                             quantity: item.quantity,
                             unit: "pkt",
                             options: [catItem.name],
-                            reason: "Packets cannot be divided into fractional units. Please specify whole packets."
+                            reason: reason
                         )
                     )
                     modified = true
@@ -1051,107 +969,74 @@ extension BillingOutput {
         verifiedItems = remainingVerified
 
         // 1. Reconcile needClarification:
+        // If a loose item is placed in needClarification solely due to fractional/divisible unit
+        // (and it maps to a single loose item in catalog with at most 1 option), loose items ARE divisible! Move to verified.
         var remainingClarification: [AgentClarificationNeedItem] = []
         for clarItem in clarificationItems {
-            let itemName = clarItem.item
-            let cleanQuery = itemName.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let cleanQuery = clarItem.item.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            let catItem = catalog.first(where: {
+                $0.name.lowercased() == cleanQuery ||
+                (clarItem.options.count == 1 && $0.name.lowercased() == clarItem.options[0].lowercased())
+            })
 
-            if ItemCatalogMatcher.isGenericOilQuery(cleanQuery) {
-                remainingClarification.append(clarItem)
-                continue
-            }
-
-            let matches = catalog.filter { cat in
-                cat.name.lowercased() == cleanQuery ||
-                cat.name.localizedCaseInsensitiveContains(cleanQuery) ||
-                cleanQuery.localizedCaseInsensitiveContains(cat.name) ||
-                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
-                    alias.count >= 3 && (cleanQuery == alias || cleanQuery.contains(alias) || alias.contains(cleanQuery))
-                }
-            }
-
-            let singleOptionMatch: Item? = {
-                if clarItem.options.count == 1 {
-                    return catalog.first(where: { $0.name.lowercased() == clarItem.options[0].lowercased() })
-                }
-                return nil
-            }()
-
-            // If packet with fractional quantity: packets cannot be divided!
-            if let catItem = singleOptionMatch ?? matches.first, catItem.sellingType == .packet,
-               clarItem.quantity.truncatingRemainder(dividingBy: 1.0) != 0 {
-                remainingClarification.append(clarItem)
-                continue
-            }
-
-            if matches.count == 1 || singleOptionMatch != nil {
-                let catItem = singleOptionMatch ?? matches.first!
-
-                var qty = clarItem.quantity
-                var unit = clarItem.unit
-                if qty == 1.0 && (unit.isEmpty || unit == "pc") {
-                    let extracted = ItemCatalogMatcher.extractQuantityAndUnit(for: catItem, from: userInput)
-                    qty = extracted.quantity
-                    unit = extracted.unit
-                }
-
+            // If loose divisible item with at most 1 option (e.g. 500g paneer): move to verified
+            if let catItem = catItem, catItem.sellingType == .loose, clarItem.options.count <= 1 {
                 if !verifiedItems.contains(where: { $0.itemName.lowercased() == catItem.name.lowercased() }) {
+                    let unitStr = (!clarItem.unit.isEmpty && clarItem.unit != "pc") ? clarItem.unit : catItem.unitType.shortLabel
                     verifiedItems.append(
                         AgentParsedItem(
-                            itemId: catItem.id.uuidString,
+                            itemId: catItem.id,
                             itemName: catItem.name,
-                            quantity: qty,
-                            unit: unit.isEmpty ? catItem.unitType.shortLabel : unit,
+                            quantity: clarItem.quantity,
+                            unit: unitStr,
                             unitPrice: catItem.pricePerUnit
                         )
                     )
+                    modified = true
+                    continue
                 }
-                modified = true
-            } else {
-                remainingClarification.append(clarItem)
             }
+            remainingClarification.append(clarItem)
         }
         clarificationItems = remainingClarification
 
-        // 2. Reconcile rejected:
+        // 2. Reconcile rejected items that actually match catalog:
         var remainingRejected: [AgentRejectedItem] = []
         for rej in rejectedItems {
             let rejName = rej.item.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
 
             if let catItem = catalog.first(where: { cat in
-                cat.name.lowercased() == rejName ||
-                cat.name.localizedCaseInsensitiveContains(rejName) ||
-                rejName.localizedCaseInsensitiveContains(cat.name) ||
-                ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
-                    alias.count >= 3 && (rejName == alias || rejName.contains(alias) || alias.contains(rejName))
-                }
+                let cLower = cat.name.lowercased()
+                return cLower == rejName || cLower.contains(rejName) || rejName.contains(cLower)
             }) {
-                let extracted = ItemCatalogMatcher.extractQuantityAndUnit(for: catItem, from: userInput)
+                let qty: Double = {
+                    let pattern = "(\\d+(?:\\.\\d+)?)\\s*(?:kg|g|gm|gram|grams|kilo|l|litre|liter|ml|pkt|packet|packets|piece|pc|pcs|dozen|doz)?\\s*\(NSRegularExpression.escapedPattern(for: rejName))"
+                    if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+                       let match = regex.firstMatch(in: userInput, range: NSRange(userInput.startIndex..., in: userInput)),
+                       let numRange = Range(match.range(at: 1), in: userInput),
+                       let val = Double(userInput[numRange]) {
+                        return val
+                    }
+                    return 1.0
+                }()
+
                 if !verifiedItems.contains(where: { $0.itemName.lowercased() == catItem.name.lowercased() }) {
                     verifiedItems.append(
                         AgentParsedItem(
-                            itemId: catItem.id.uuidString,
+                            itemId: catItem.id,
                             itemName: catItem.name,
-                            quantity: extracted.quantity,
-                            unit: extracted.unit,
+                            quantity: qty,
+                            unit: catItem.unitType.shortLabel,
                             unitPrice: catItem.pricePerUnit
                         )
                     )
+                    modified = true
                 }
-                modified = true
             } else {
                 remainingRejected.append(rej)
             }
         }
         rejectedItems = remainingRejected
-
-        // 3. Explicit price extraction (e.g. "1 packet milk of 30 rs")
-        for i in 0..<verifiedItems.count {
-            if let customPrice = ItemCatalogMatcher.extractExplicitPrice(for: verifiedItems[i].itemName, from: userInput) {
-                verifiedItems[i].unitPrice = customPrice
-                modified = true
-            }
-        }
 
         // Apply back to payload if modified
         if modified {
@@ -1161,6 +1046,7 @@ extension BillingOutput {
 
             if !verifiedItems.isEmpty && clarificationItems.isEmpty {
                 payload.status = "ready"
+                payload.pendingClarification = nil
                 let desc = verifiedItems.map {
                     let qtyStr = $0.quantity.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int($0.quantity))" : "\($0.quantity)"
                     return "\(qtyStr) \($0.unit) \($0.itemName)"

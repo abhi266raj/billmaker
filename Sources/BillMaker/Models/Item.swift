@@ -63,7 +63,7 @@ public enum UnitType: String, Codable, CaseIterable, Identifiable, Sendable {
 }
 
 public struct Item: Identifiable, Codable, Hashable, Sendable {
-    public var id: UUID
+    public var id: String
     public var name: String
     public var unitType: UnitType
     public var pricePerUnit: Double
@@ -74,7 +74,7 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
     public var packetSize: String?
 
     public init(
-        id: UUID = UUID(),
+        id: String = UUID().uuidString,
         name: String,
         unitType: UnitType = .kg,
         pricePerUnit: Double,
@@ -95,9 +95,41 @@ public struct Item: Identifiable, Codable, Hashable, Sendable {
         self.packetSize = packetSize
     }
 
+    public init(
+        id: UUID,
+        name: String,
+        unitType: UnitType = .kg,
+        pricePerUnit: Double,
+        category: String = "General",
+        notes: String = "",
+        inStock: Bool = true,
+        sellingType: SellingType? = nil,
+        packetSize: String? = nil
+    ) {
+        self.init(
+            id: id.uuidString,
+            name: name,
+            unitType: unitType,
+            pricePerUnit: pricePerUnit,
+            category: category,
+            notes: notes,
+            inStock: inStock,
+            sellingType: sellingType,
+            packetSize: packetSize
+        )
+    }
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        if let str = try? container.decode(String.self, forKey: .id) {
+            self.id = str
+        } else if let intVal = try? container.decode(Int.self, forKey: .id) {
+            self.id = String(intVal)
+        } else if let uuid = try? container.decode(UUID.self, forKey: .id) {
+            self.id = uuid.uuidString
+        } else {
+            self.id = UUID().uuidString
+        }
         self.name = try container.decode(String.self, forKey: .name)
         self.unitType = try container.decode(UnitType.self, forKey: .unitType)
         self.pricePerUnit = try container.decode(Double.self, forKey: .pricePerUnit)

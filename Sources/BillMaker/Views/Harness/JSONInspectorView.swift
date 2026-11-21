@@ -1,11 +1,24 @@
 import SwiftUI
 
+public enum JSONFormatter {
+    public static func prettyPrint(_ raw: String) -> String {
+        guard !raw.isEmpty,
+              let data = raw.data(using: .utf8),
+              let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
+              let prettyData = try? JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted, .sortedKeys]),
+              let prettyString = String(data: prettyData, encoding: .utf8) else {
+            return raw
+        }
+        return prettyString
+    }
+}
+
 public struct JSONInspectorView: View {
     @Environment(\.dismiss) private var dismiss
     let jsonText: String
 
     public init(jsonText: String) {
-        self.jsonText = jsonText
+        self.jsonText = JSONFormatter.prettyPrint(jsonText)
     }
 
     public var body: some View {

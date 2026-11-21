@@ -1,6 +1,6 @@
 [
   {
-    "id": "11111111-1111-1111-1111-111111111101",
+    "id": "1",
     "name": "Potato",
     "unitType": "kg",
     "pricePerUnit": 30.0,
@@ -10,7 +10,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111102",
+    "id": "2",
     "name": "Tomato",
     "unitType": "kg",
     "pricePerUnit": 40.0,
@@ -20,7 +20,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111103",
+    "id": "3",
     "name": "Onion",
     "unitType": "kg",
     "pricePerUnit": 35.0,
@@ -30,7 +30,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111104",
+    "id": "4",
     "name": "Ginger",
     "unitType": "gram",
     "pricePerUnit": 0.20,
@@ -40,7 +40,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111105",
+    "id": "5",
     "name": "Cow Milk",
     "unitType": "litre",
     "pricePerUnit": 64.0,
@@ -50,7 +50,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111106",
+    "id": "6",
     "name": "Packet Milk",
     "unitType": "packet",
     "pricePerUnit": 30.0,
@@ -61,7 +61,7 @@
     "packetSize": "500ml"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111107",
+    "id": "7",
     "name": "Packet Milk (1L)",
     "unitType": "packet",
     "pricePerUnit": 60.0,
@@ -72,7 +72,7 @@
     "packetSize": "1L"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111108",
+    "id": "8",
     "name": "Curd",
     "unitType": "packet",
     "pricePerUnit": 35.0,
@@ -83,7 +83,7 @@
     "packetSize": "400g"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111109",
+    "id": "9",
     "name": "Paneer",
     "unitType": "kg",
     "pricePerUnit": 380.0,
@@ -93,7 +93,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111110",
+    "id": "10",
     "name": "Amul Butter",
     "unitType": "packet",
     "pricePerUnit": 56.0,
@@ -104,7 +104,7 @@
     "packetSize": "100g"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111111",
+    "id": "11",
     "name": "Mustard Oil",
     "unitType": "litre",
     "pricePerUnit": 160.0,
@@ -114,7 +114,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111112",
+    "id": "12",
     "name": "Sunflower Oil",
     "unitType": "litre",
     "pricePerUnit": 145.0,
@@ -124,7 +124,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111113",
+    "id": "13",
     "name": "Basmati Rice",
     "unitType": "kg",
     "pricePerUnit": 110.0,
@@ -134,7 +134,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111114",
+    "id": "14",
     "name": "Atta (Wheat Flour)",
     "unitType": "kg",
     "pricePerUnit": 42.0,
@@ -144,7 +144,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111115",
+    "id": "15",
     "name": "Sugar",
     "unitType": "kg",
     "pricePerUnit": 44.0,
@@ -154,7 +154,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111116",
+    "id": "16",
     "name": "Tata Salt",
     "unitType": "packet",
     "pricePerUnit": 28.0,
@@ -165,7 +165,7 @@
     "packetSize": "1kg"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111117",
+    "id": "17",
     "name": "Maggi Noodles",
     "unitType": "packet",
     "pricePerUnit": 14.0,
@@ -176,7 +176,7 @@
     "packetSize": "70g"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111118",
+    "id": "18",
     "name": "Bread",
     "unitType": "packet",
     "pricePerUnit": 40.0,
@@ -187,7 +187,7 @@
     "packetSize": "medium"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111119",
+    "id": "19",
     "name": "Chai Patti (Tea)",
     "unitType": "packet",
     "pricePerUnit": 120.0,
@@ -198,7 +198,7 @@
     "packetSize": "250g"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111120",
+    "id": "20",
     "name": "Eggs",
     "unitType": "piece",
     "pricePerUnit": 7.0,
@@ -208,7 +208,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111121",
+    "id": "21",
     "name": "Banana",
     "unitType": "dozen",
     "pricePerUnit": 60.0,
@@ -218,7 +218,7 @@
     "sellingType": "loose"
   },
   {
-    "id": "11111111-1111-1111-1111-111111111122",
+    "id": "22",
     "name": "Apple",
     "unitType": "kg",
     "pricePerUnit": 180.0,

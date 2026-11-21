@@ -85,7 +85,7 @@ public final class AppState: ObservableObject {
         let unit = pending?.unit.isEmpty == false ? pending!.unit : catalogItem.unitType.shortLabel
 
         let parsedItem = AgentParsedItem(
-            itemId: catalogItem.id.uuidString,
+            itemId: catalogItem.id,
             itemName: catalogItem.name,
             quantity: qty,
             unit: unit,
@@ -135,54 +135,6 @@ public final class AppState: ObservableObject {
         let lower = trimmed.lowercased()
         if lower == "undo" || lower == "undo last" || lower == "revert" || lower == "cancel last" || lower == "wapas" {
             self.undo()
-            return
-        }
-
-        // Conversational Clarification Answer Resolution:
-        // If the user is replying to a pending clarification question with a candidate name, ordinal, or affirmation
-        if let lastAgent = messages.dropLast().last(where: { $0.role == .agent }),
-           lastAgent.status == .needsClarification,
-           let pending = lastAgent.pendingClarification,
-           let resolvedChoice = ItemCatalogMatcher.resolveClarificationChoice(userInput: trimmed, pending: pending, catalog: catalog) {
-
-            let parsedItem = AgentParsedItem(
-                itemId: resolvedChoice.item.id.uuidString,
-                itemName: resolvedChoice.item.name,
-                quantity: resolvedChoice.quantity,
-                unit: resolvedChoice.unit,
-                unitPrice: resolvedChoice.item.pricePerUnit
-            )
-
-            let billSummary = BillCalculator.computeBill(
-                from: [parsedItem],
-                catalog: catalog,
-                currencySymbol: settings.currencySymbol,
-                taxRatePercent: settings.taxRatePercent
-            )
-
-            let response = AgentMessage(
-                role: .agent,
-                text: "Added \(resolvedChoice.quantity) \(resolvedChoice.unit) \(resolvedChoice.item.name) to the bill.",
-                thoughtProcess: "Resolved choice '\(resolvedChoice.item.name)' for previous query '\(pending.query)' with quantity \(resolvedChoice.quantity) \(resolvedChoice.unit).",
-                status: .ready,
-                billSummary: billSummary,
-                parsedItems: [parsedItem],
-                canUndo: true
-            )
-
-            messages.append(response)
-
-            // Merge into current bill
-            billHistory.append(self.currentBill)
-            canUndo = true
-            currentBill = BillCalculator.mergeIntoBill(
-                existingBill: self.currentBill,
-                newParsedItems: [parsedItem],
-                catalog: self.catalog,
-                currencySymbol: self.settings.currencySymbol,
-                taxRatePercent: self.settings.taxRatePercent,
-                policy: self.duplicatePolicy
-            )
             return
         }
 

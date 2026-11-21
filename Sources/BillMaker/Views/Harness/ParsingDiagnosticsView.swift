@@ -214,16 +214,36 @@ public struct ParsingDiagnosticsView: View {
             // Expandable details (Raw output & JSON)
             if expandedRecordId == record.id {
                 VStack(alignment: .leading, spacing: 8) {
+                    if let req = record.requestSent, !req.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("REQUEST SENT TO MODEL:")
+                                    .font(.system(size: 9).weight(.bold))
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                copyButton(text: req, id: record.id)
+                            }
+                            Text(req)
+                                .font(.system(.caption2, design: .monospaced))
+                                .textSelection(.enabled)
+                                .padding(8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(NSColor.textBackgroundColor))
+                                .cornerRadius(6)
+                        }
+                    }
+
                     if let json = record.extractedJson, !json.isEmpty {
+                        let formattedJson = JSONFormatter.prettyPrint(json)
                         VStack(alignment: .leading, spacing: 2) {
                             HStack {
                                 Text("EXTRACTED JSON:")
                                     .font(.system(size: 9).weight(.bold))
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                copyButton(text: json, id: record.id)
+                                copyButton(text: formattedJson, id: record.id)
                             }
-                            Text(json)
+                            Text(formattedJson)
                                 .font(.system(.caption2, design: .monospaced))
                                 .textSelection(.enabled)
                                 .padding(8)
@@ -234,14 +254,15 @@ public struct ParsingDiagnosticsView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
+                        let formattedRaw = JSONFormatter.prettyPrint(record.rawLLMOutput)
                         HStack {
                             Text("RAW MODEL OUTPUT:")
                                 .font(.system(size: 9).weight(.bold))
                                 .foregroundColor(.secondary)
                             Spacer()
-                            copyButton(text: record.rawLLMOutput, id: record.id)
+                            copyButton(text: formattedRaw, id: record.id)
                         }
-                        Text(record.rawLLMOutput.isEmpty ? "(empty string)" : record.rawLLMOutput)
+                        Text(formattedRaw.isEmpty ? "(empty string)" : formattedRaw)
                             .font(.system(.caption2, design: .monospaced))
                             .textSelection(.enabled)
                             .padding(8)
@@ -344,11 +365,14 @@ public struct ParsingDiagnosticsView: View {
             User Input: \(record.userInput)
             Root Cause: \(record.rootCauseAnalysis)
             """
+            if let req = record.requestSent, !req.isEmpty {
+                fullSummary += "\n\n[REQUEST SENT TO MODEL]\n\(req)"
+            }
             if let json = record.extractedJson, !json.isEmpty {
-                fullSummary += "\nExtracted JSON:\n\(json)"
+                fullSummary += "\n\n[EXTRACTED JSON]\n\(JSONFormatter.prettyPrint(json))"
             }
             if !record.rawLLMOutput.isEmpty {
-                fullSummary += "\nRaw LLM Output:\n\(record.rawLLMOutput)"
+                fullSummary += "\n\n[RAW MODEL OUTPUT]\n\(JSONFormatter.prettyPrint(record.rawLLMOutput))"
             }
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(fullSummary, forType: .string)

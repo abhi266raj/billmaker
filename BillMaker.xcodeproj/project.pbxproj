@@ -32,7 +32,6 @@
 		99939421974C70CA9EA3355F /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */; };
 		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
-		ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */; };
 		ACE6B4331BE81F72483C6A8B /* AgentAtomSource in Frameworks */ = {isa = PBXBuildFile; productRef = 5072CD1B503CC5B4B038E1FC /* AgentAtomSource */; };
 		BFD64C9EEC8CB5D2EAECFB03 /* ClarificationInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19CD6D32BA6D012040A1754 /* ClarificationInput.swift */; };
 		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
@@ -82,7 +81,6 @@
 		83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
 		88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterBillingOrchestrator.swift; sourceTree = "<group>"; };
 		8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
-		94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemCatalogMatcher.swift; sourceTree = "<group>"; };
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
 		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
@@ -277,7 +275,6 @@
 			isa = PBXGroup;
 			children = (
 				664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */,
-				94B1E6297A51A94F5980509E /* ItemCatalogMatcher.swift */,
 				44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */,
 				D84681EF20011ABDFDCCD38A /* Orchestrator */,
 				028265D2287CA28899033F9E /* Specs */,
@@ -451,7 +448,6 @@
 				123234272817B8327A060678 /* Double+Formatting.swift in Sources */,
 				75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */,
 				A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */,
-				ACE1E6CCE26D72B9BDFC36D4 /* ItemCatalogMatcher.swift in Sources */,
 				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
 				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
 				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
