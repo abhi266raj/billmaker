@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "BillMaker",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "swift.path": "/usr/bin/swift",
+    "editor.tabSize": 4,
+    "files.associations": {
+      "*.swift": "swift"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "swiftlang.swift-vscode"
+    ]
+  }
+}

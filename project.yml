@@ -1,0 +1,40 @@
+name: BillMaker
+options:
+  bundleIdPrefix: com.billmaker
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    PRODUCT_NAME: "BillMaker"
+    ENABLE_USER_SCRIPT_SANDBOXING: false
+
+targets:
+  BillMaker:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: Sources/BillMaker
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.billmaker.app
+        INFOPLIST_FILE: Sources/BillMaker/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: true
+        CODE_SIGN_IDENTITY: "-"
+        CODE_SIGNING_REQUIRED: false
+        CODE_SIGN_ENTITLEMENTS: ""
+
+  BillMakerTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/BillMakerTests
+    dependencies:
+      - target: BillMaker

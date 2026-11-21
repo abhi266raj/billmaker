@@ -1,0 +1,642 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2C0998AC37FFBA48B1DAEA /* AgentHarnessView.swift */; };
+		0DD48D2FAF970A77C17EB98A /* BillCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */; };
+		123234272817B8327A060678 /* Double+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088F39DBF547A15E0DF857C8 /* Double+Formatting.swift */; };
+		1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BDD130FE59307D67B36033 /* AppState.swift */; };
+		159154350904B05E08C5880E /* BillCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */; };
+		4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749E18DECF5E3727D5EF7E49 /* AppSettings.swift */; };
+		500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F11597044C462B6F9622EB6 /* MainView.swift */; };
+		554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */; };
+		5965B18A5BFA7A6B6F8FBB6C /* ThoughtLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */; };
+		5E5C83C032C3D52067631F91 /* LLMParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */; };
+		64407F793284238483465BA8 /* Bill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D97D8C44B1BF3998FDFB75 /* Bill.swift */; };
+		6B8A772A9D922E0C8A98739C /* ChatMessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */; };
+		6D42F84712D20C507674CB7B /* DefaultCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */; };
+		702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */; };
+		70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */; };
+		75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */; };
+		7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */; };
+		7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31814D047DFD89075E97FF9D /* SettingsView.swift */; };
+		81C727B929DAB0BAA333E204 /* SpeechRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */; };
+		99939421974C70CA9EA3355F /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */; };
+		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
+		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
+		B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */; };
+		BC08531B5C8ABD428CF7C672 /* AppleFMAgentEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */; };
+		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
+		C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */; };
+		CA18DA0E608F44061C837C30 /* AgentResponseBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */; };
+		CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */; };
+		D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5214870783E7496732F39D /* AgentMessage.swift */; };
+		DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */; };
+		EC6F666D4584A665FFC0A917 /* CatalogStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B1DD197103CD20566A36E /* CatalogStorageService.swift */; };
+		F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */; };
+		FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		904F6AF3FB67C6C1D6E603C0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 979658872143CDA5261879DB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 734D37A8F9A74B383145BEE9;
+			remoteInfo = BillMaker;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		088F39DBF547A15E0DF857C8 /* Double+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+Formatting.swift"; sourceTree = "<group>"; };
+		1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculationTests.swift; sourceTree = "<group>"; };
+		1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DefaultCatalog.json; sourceTree = "<group>"; };
+		21D97D8C44B1BF3998FDFB75 /* Bill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bill.swift; sourceTree = "<group>"; };
+		2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentResponseBuilder.swift; sourceTree = "<group>"; };
+		2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMParsingTests.swift; sourceTree = "<group>"; };
+		31814D047DFD89075E97FF9D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSuggestionBar.swift; sourceTree = "<group>"; };
+		3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceCardComponents.swift; sourceTree = "<group>"; };
+		46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
+		4D5214870783E7496732F39D /* AgentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMessage.swift; sourceTree = "<group>"; };
+		6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFMAgentEngine.swift; sourceTree = "<group>"; };
+		6E3099402FD2BE17F77B6437 /* ReceiptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptService.swift; sourceTree = "<group>"; };
+		6F11597044C462B6F9622EB6 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		73BDD130FE59307D67B36033 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		749E18DECF5E3727D5EF7E49 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEditorSheet.swift; sourceTree = "<group>"; };
+		83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
+		8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMResponseParser.swift; sourceTree = "<group>"; };
+		8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
+		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
+		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
+		A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMPromptBuilder.swift; sourceTree = "<group>"; };
+		B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtLogger.swift; sourceTree = "<group>"; };
+		CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONInspectorView.swift; sourceTree = "<group>"; };
+		CE2C0998AC37FFBA48B1DAEA /* AgentHarnessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentHarnessView.swift; sourceTree = "<group>"; };
+		D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStorageService.swift; sourceTree = "<group>"; };
+		DB8D147938AD307524CEDADD /* ChatInputBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputBar.swift; sourceTree = "<group>"; };
+		E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillMakerApp.swift; sourceTree = "<group>"; };
+		E34B1DD197103CD20566A36E /* CatalogStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStorageService.swift; sourceTree = "<group>"; };
+		F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveInvoiceView.swift; sourceTree = "<group>"; };
+		F21B9C29F9491CCCC3561B57 /* BillMaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BillMaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionTests.swift; sourceTree = "<group>"; };
+		FB52B5B1E55F4DFF67DF076D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0360EA361E3C7487316FD692 /* Speech */ = {
+			isa = PBXGroup;
+			children = (
+				83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */,
+			);
+			path = Speech;
+			sourceTree = "<group>";
+		};
+		0C8648225AE50838EC9744BD = {
+			isa = PBXGroup;
+			children = (
+				751A51DB0EF62EF014BAF22A /* BillMaker */,
+				49FF28961DD537A7927939B3 /* BillMakerTests */,
+				5330D04D273FA7EC1608F3A2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2A6FF37EB16775D56553F913 /* Printing */ = {
+			isa = PBXGroup;
+			children = (
+				6E3099402FD2BE17F77B6437 /* ReceiptService.swift */,
+			);
+			path = Printing;
+			sourceTree = "<group>";
+		};
+		3973F476DB8DAC3DB4480A19 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				4D5214870783E7496732F39D /* AgentMessage.swift */,
+				749E18DECF5E3727D5EF7E49 /* AppSettings.swift */,
+				21D97D8C44B1BF3998FDFB75 /* Bill.swift */,
+				088F39DBF547A15E0DF857C8 /* Double+Formatting.swift */,
+				FB52B5B1E55F4DFF67DF076D /* Item.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		3FEFE7BB4097880FFB574C69 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		433137167FC0075268C4DA9C /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				B046F741753FE5B0A90B1A97 /* AI */,
+				EDEAF58972421603FF74B4B7 /* Harness */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		440B17104532F1C890658E9A /* Harness */ = {
+			isa = PBXGroup;
+			children = (
+				CE2C0998AC37FFBA48B1DAEA /* AgentHarnessView.swift */,
+				950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */,
+				CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */,
+				F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */,
+				F6B6621A7009B7F437062A5F /* Components */,
+			);
+			path = Harness;
+			sourceTree = "<group>";
+		};
+		4935A493C7B4754F0421065C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				2A6FF37EB16775D56553F913 /* Printing */,
+				0360EA361E3C7487316FD692 /* Speech */,
+				97528C85F2523D18614886D4 /* Storage */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		49FF28961DD537A7927939B3 /* BillMakerTests */ = {
+			isa = PBXGroup;
+			children = (
+				1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */,
+				2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */,
+				F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */,
+			);
+			name = BillMakerTests;
+			path = Tests/BillMakerTests;
+			sourceTree = "<group>";
+		};
+		5330D04D273FA7EC1608F3A2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F21B9C29F9491CCCC3561B57 /* BillMaker.app */,
+				9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		751A51DB0EF62EF014BAF22A /* BillMaker */ = {
+			isa = PBXGroup;
+			children = (
+				E9CEE990C66E5DD5FFCC67E4 /* App */,
+				433137167FC0075268C4DA9C /* Engine */,
+				3973F476DB8DAC3DB4480A19 /* Models */,
+				3FEFE7BB4097880FFB574C69 /* Resources */,
+				4935A493C7B4754F0421065C /* Services */,
+				8CEAD39B0330056F269214C6 /* Views */,
+			);
+			name = BillMaker;
+			path = Sources/BillMaker;
+			sourceTree = "<group>";
+		};
+		8CEAD39B0330056F269214C6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6F11597044C462B6F9622EB6 /* MainView.swift */,
+				DCB0C53DEFCBA18DB453D93C /* Catalog */,
+				440B17104532F1C890658E9A /* Harness */,
+				9DC5E296C4E85EC2A0AD1F35 /* Settings */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		97528C85F2523D18614886D4 /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				E34B1DD197103CD20566A36E /* CatalogStorageService.swift */,
+				D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		9DC5E296C4E85EC2A0AD1F35 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				31814D047DFD89075E97FF9D /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		B046F741753FE5B0A90B1A97 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				6D16C29E53FB429C7D3417C7 /* AppleFMAgentEngine.swift */,
+				A5659A93FA5EFFB07C47D88A /* LLMPromptBuilder.swift */,
+				8931AF61BCB66145D8A77597 /* LLMResponseParser.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
+		DCB0C53DEFCBA18DB453D93C /* Catalog */ = {
+			isa = PBXGroup;
+			children = (
+				46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */,
+				7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */,
+			);
+			path = Catalog;
+			sourceTree = "<group>";
+		};
+		E9CEE990C66E5DD5FFCC67E4 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				73BDD130FE59307D67B36033 /* AppState.swift */,
+				E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		EDEAF58972421603FF74B4B7 /* Harness */ = {
+			isa = PBXGroup;
+			children = (
+				A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */,
+				2690D97034D7A897C1B3BC37 /* AgentResponseBuilder.swift */,
+				8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */,
+				B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */,
+			);
+			path = Harness;
+			sourceTree = "<group>";
+		};
+		F6B6621A7009B7F437062A5F /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				DB8D147938AD307524CEDADD /* ChatInputBar.swift */,
+				3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */,
+				3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		734D37A8F9A74B383145BEE9 /* BillMaker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 59B44C1335EFDFF7189BB12F /* Build configuration list for PBXNativeTarget "BillMaker" */;
+			buildPhases = (
+				08E30B7203DBBF836C0B5595 /* Sources */,
+				E5C135A8C008285FFAAE02E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BillMaker;
+			packageProductDependencies = (
+			);
+			productName = BillMaker;
+			productReference = F21B9C29F9491CCCC3561B57 /* BillMaker.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B1A8F7936398D06093C49A20 /* BillMakerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 032321A3213789D23C38D751 /* Build configuration list for PBXNativeTarget "BillMakerTests" */;
+			buildPhases = (
+				8FCEC48DFC30913489616AC4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A2881C35C4B3BC676D0AF4FD /* PBXTargetDependency */,
+			);
+			name = BillMakerTests;
+			packageProductDependencies = (
+			);
+			productName = BillMakerTests;
+			productReference = 9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		979658872143CDA5261879DB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = 1D0DCC112DE2696CDF9B4CC8 /* Build configuration list for PBXProject "BillMaker" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 0C8648225AE50838EC9744BD;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				734D37A8F9A74B383145BEE9 /* BillMaker */,
+				B1A8F7936398D06093C49A20 /* BillMakerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E5C135A8C008285FFAAE02E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D42F84712D20C507674CB7B /* DefaultCatalog.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		08E30B7203DBBF836C0B5595 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */,
+				0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */,
+				D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */,
+				CA18DA0E608F44061C837C30 /* AgentResponseBuilder.swift in Sources */,
+				4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */,
+				1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */,
+				BC08531B5C8ABD428CF7C672 /* AppleFMAgentEngine.swift in Sources */,
+				64407F793284238483465BA8 /* Bill.swift in Sources */,
+				0DD48D2FAF970A77C17EB98A /* BillCalculator.swift in Sources */,
+				CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */,
+				EC6F666D4584A665FFC0A917 /* CatalogStorageService.swift in Sources */,
+				99939421974C70CA9EA3355F /* CatalogView.swift in Sources */,
+				A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */,
+				6B8A772A9D922E0C8A98739C /* ChatMessageBubble.swift in Sources */,
+				123234272817B8327A060678 /* Double+Formatting.swift in Sources */,
+				75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */,
+				A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */,
+				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
+				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
+				B0A1DEB3347551CBF8FE0424 /* LLMPromptBuilder.swift in Sources */,
+				7ADD9892C2772D025D4D4DC2 /* LLMResponseParser.swift in Sources */,
+				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
+				500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */,
+				F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */,
+				C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */,
+				C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */,
+				7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */,
+				FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */,
+				5965B18A5BFA7A6B6F8FBB6C /* ThoughtLogger.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8FCEC48DFC30913489616AC4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				159154350904B05E08C5880E /* BillCalculationTests.swift in Sources */,
+				5E5C83C032C3D52067631F91 /* LLMParsingTests.swift in Sources */,
+				81C727B929DAB0BAA333E204 /* SpeechRecognitionTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A2881C35C4B3BC676D0AF4FD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 734D37A8F9A74B383145BEE9 /* BillMaker */;
+			targetProxy = 904F6AF3FB67C6C1D6E603C0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		367B04CC8474C78BE1E604CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
+			};
+			name = Release;
+		};
+		376DA057005A3ECF33BA360D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Sources/BillMaker/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		83B4EFBBEE438D6B7C04B6B4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = BillMaker;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		880DD0696D940062C9494F89 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
+			};
+			name = Debug;
+		};
+		B3C03687421D1BD3FAC88A5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Sources/BillMaker/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		C53A6DF067B21C32C65C31B7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = BillMaker;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		032321A3213789D23C38D751 /* Build configuration list for PBXNativeTarget "BillMakerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				880DD0696D940062C9494F89 /* Debug */,
+				367B04CC8474C78BE1E604CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1D0DCC112DE2696CDF9B4CC8 /* Build configuration list for PBXProject "BillMaker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C53A6DF067B21C32C65C31B7 /* Debug */,
+				83B4EFBBEE438D6B7C04B6B4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		59B44C1335EFDFF7189BB12F /* Build configuration list for PBXNativeTarget "BillMaker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				376DA057005A3ECF33BA360D /* Debug */,
+				B3C03687421D1BD3FAC88A5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 979658872143CDA5261879DB /* Project object */;
+}
