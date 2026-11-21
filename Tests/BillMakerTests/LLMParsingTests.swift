@@ -204,6 +204,38 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 160.0)
     }
 
+    func testStructuredClarificationJSONParsingWithCandidateOptions() {
+        let clarificationJson = """
+        ```json
+        {
+          "status": "needs_clarification",
+          "message": "Which oil would you like? We have Mustard Oil and Sunflower Oil.",
+          "thought": "Ambiguous oil requested with multiple candidate matches",
+          "options": ["Mustard Oil", "Sunflower Oil"],
+          "pendingClarification": {
+            "query": "oil",
+            "quantity": 1.0,
+            "unit": "L",
+            "candidateNames": ["Mustard Oil", "Sunflower Oil"]
+          }
+        }
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: clarificationJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings
+        )
+
+        XCTAssertEqual(parsedMessage.status, .needsClarification)
+        XCTAssertEqual(parsedMessage.text, "Which oil would you like? We have Mustard Oil and Sunflower Oil.")
+        XCTAssertNotNil(parsedMessage.pendingClarification)
+        XCTAssertEqual(parsedMessage.pendingClarification?.candidateNames.count, 2)
+        XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Mustard Oil") == true)
+        XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Sunflower Oil") == true)
+    }
+
     func testLiveDaemonIntegrationIfOnline() async throws {
         guard AppleFMServerManager.shared.isDaemonOnline() else { return }
         let catalog = [

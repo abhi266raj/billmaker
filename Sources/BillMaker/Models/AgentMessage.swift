@@ -20,11 +20,40 @@ public struct PendingClarification: Codable, Hashable {
     public var unit: String
     public var candidateNames: [String]
 
-    public init(query: String, quantity: Double, unit: String, candidateNames: [String]) {
+    public init(query: String = "", quantity: Double = 1.0, unit: String = "pc", candidateNames: [String] = []) {
         self.query = query
         self.quantity = quantity
         self.unit = unit
         self.candidateNames = candidateNames
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case query, quantity, unit, candidateNames, candidates, options
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(query, forKey: .query)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encode(unit, forKey: .unit)
+        try container.encode(candidateNames, forKey: .candidateNames)
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.query = try container.decodeIfPresent(String.self, forKey: .query) ?? ""
+        self.quantity = try container.decodeIfPresent(Double.self, forKey: .quantity) ?? 1.0
+        self.unit = try container.decodeIfPresent(String.self, forKey: .unit) ?? "pc"
+
+        var candidates: [String] = []
+        if let list = try container.decodeIfPresent([String].self, forKey: .candidateNames) {
+            candidates = list
+        } else if let list = try container.decodeIfPresent([String].self, forKey: .candidates) {
+            candidates = list
+        } else if let list = try container.decodeIfPresent([String].self, forKey: .options) {
+            candidates = list
+        }
+        self.candidateNames = candidates
     }
 }
 
@@ -359,9 +388,29 @@ public struct AgentJsonPayload: Codable {
         if let k = DynamicCodingKeys(stringValue: "questions") {
             self.questions = try? container.decodeIfPresent([String].self, forKey: k)
         }
-        if let k = DynamicCodingKeys(stringValue: "pendingClarification") {
-            self.pendingClarification = try? container.decodeIfPresent(PendingClarification.self, forKey: k)
+
+        var resOptions: [String]? = nil
+        for keyStr in ["options", "candidates", "candidateNames", "choices"] {
+            if let k = DynamicCodingKeys(stringValue: keyStr),
+               let arr = try? container.decode([String].self, forKey: k) {
+                resOptions = arr
+                break
+            }
         }
+
+        var resClarification = try? container.decodeIfPresent(PendingClarification.self, forKey: DynamicCodingKeys(stringValue: "pendingClarification")!)
+        if resClarification == nil, let opts = resOptions, !opts.isEmpty {
+            resClarification = PendingClarification(
+                query: resMessage,
+                quantity: 1.0,
+                unit: "pc",
+                candidateNames: opts
+            )
+        } else if let opts = resOptions, !opts.isEmpty, resClarification?.candidateNames.isEmpty == true {
+            resClarification?.candidateNames = opts
+        }
+        self.pendingClarification = resClarification
+
         if let k = DynamicCodingKeys(stringValue: "unitCorrections") {
             self.unitCorrections = try? container.decodeIfPresent([String].self, forKey: k)
         }

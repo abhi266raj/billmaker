@@ -24,8 +24,9 @@ public struct LLMPromptBuilder {
         5. Colloquial Quantities: Understand numbers & units ('dedh kilo'=1.5kg, 'dhai'=2.5, 'aadha'=0.5, 'paav'=0.25, '२ किलो'=2kg, 'do kilo'=2kg, 'half dozen'=0.5 doz).
         6. Speed & Reasoning: Keep reasoning inside <thought>...</thought> strictly to 1 short sentence.
         7. Non-Empty Items: When status is "ready", the "items" array must contain the resolved item(s). Never return empty items with status "ready".
-        8. Output: Output immediately as JSON in ```json ... ```:
+        8. Output Format: Output immediately as JSON in ```json ... ```:
 
+        FORMAT A: Ready to Bill (Status "ready"):
         ```json
         {
           "status": "ready",
@@ -41,7 +42,22 @@ public struct LLMPromptBuilder {
           ]
         }
         ```
-        (Use status "needs_clarification" ONLY if the item does not exist anywhere in the catalog).
+
+        FORMAT B: Clarification Needed (Status "needs_clarification" - ONLY when multiple catalog options match):
+        ```json
+        {
+          "status": "needs_clarification",
+          "message": "Question asking which catalog item the customer wants",
+          "thought": "Ambiguous item requested with multiple candidate matches",
+          "options": ["Catalog Item 1", "Catalog Item 2"],
+          "pendingClarification": {
+            "query": "customer query",
+            "quantity": 1.0,
+            "unit": "kg",
+            "candidateNames": ["Catalog Item 1", "Catalog Item 2"]
+          }
+        }
+        ```
         """
     }
 
