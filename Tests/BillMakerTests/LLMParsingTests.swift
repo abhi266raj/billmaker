@@ -919,4 +919,71 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(payload.needClarification?.count, 1)
         XCTAssertEqual(payload.status, "needs_clarification")
     }
+
+    func testSessionAndAllRecordsDiagnosticsScopingAndClearing() {
+        let logger = ParsingDiagnosticsLogger.shared
+        logger.clearAllLogs()
+
+        XCTAssertTrue(logger.sessionRecords.isEmpty)
+        XCTAssertTrue(logger.allRecords.isEmpty)
+
+        logger.log(
+            userInput: "test input",
+            rawLLMOutput: "test output",
+            outcome: .success,
+            rootCauseAnalysis: "session test"
+        )
+
+        XCTAssertEqual(logger.sessionRecords.count, 1)
+        XCTAssertEqual(logger.allRecords.count, 1)
+
+        // Clear only this session
+        logger.clearSessionLogs()
+        XCTAssertEqual(logger.sessionRecords.count, 0)
+        XCTAssertEqual(logger.allRecords.count, 1) // allRecords preserved
+    }
+
+    func testVerifiedItemGivenInMessageAndUpdatedDuringClarification() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        let json = """
+        ```json
+        {
+          "thought": "Customer requested 5kg atta and 1L oil.",
+          "message": "Which oil would you like? We have Mustard Oil or Sunflower Oil.",
+          "items": {
+            "verified": {
+              "Atta": {
+                "quantity": 5.0,
+                "unit": "kg",
+                "unitPrice": 42.0
+              }
+            },
+            "rejected": {},
+            "needClarification": {
+              "oil": {
+                "quantity": 1.0,
+                "unit": "L",
+                "options": ["Mustard Oil", "Sunflower Oil"],
+                "reason": "Specify variety"
+              }
+            }
+          }
+        }
+        ```
+        """
+
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "5kg atta and 1L oil"
+        )
+
+        XCTAssertEqual(parsed.status, .needsClarification)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.itemName, "Atta")
+        XCTAssertNotNil(parsed.billSummary)
+        XCTAssertTrue(parsed.text.contains("Added 5 kg Atta to the bill"))
+        XCTAssertTrue(parsed.text.contains("Which oil would you like"))
+    }
 }

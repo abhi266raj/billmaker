@@ -4,9 +4,17 @@ import AppKit
 public struct ParsingDiagnosticsView: View {
     @ObservedObject var logger = ParsingDiagnosticsLogger.shared
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedScope: DiagnosticsScope = .thisSession
     @State private var selectedFilter: DiagnosticsFilter = .all
     @State private var expandedRecordId: UUID? = nil
     @State private var copiedId: UUID? = nil
+
+    public enum DiagnosticsScope: String, CaseIterable, Identifiable {
+        case thisSession = "This Session"
+        case allHistory = "All History"
+
+        public var id: String { rawValue }
+    }
 
     public enum DiagnosticsFilter: String, CaseIterable, Identifiable {
         case all = "All"
@@ -19,16 +27,26 @@ public struct ParsingDiagnosticsView: View {
 
     public init() {}
 
+    private var scopeRecords: [ParsingDiagnosticsRecord] {
+        switch selectedScope {
+        case .thisSession:
+            return logger.sessionRecords
+        case .allHistory:
+            return logger.allRecords
+        }
+    }
+
     private var filteredRecords: [ParsingDiagnosticsRecord] {
+        let source = scopeRecords
         switch selectedFilter {
         case .all:
-            return logger.recentRecords
+            return source
         case .errorsOnly:
-            return logger.recentRecords.filter { $0.outcome == .decodingError || $0.outcome == .missingJson || $0.outcome == .networkError }
+            return source.filter { $0.isFailure }
         case .clarifications:
-            return logger.recentRecords.filter { $0.outcome == .clarification }
+            return source.filter { $0.outcome == .clarification }
         case .success:
-            return logger.recentRecords.filter { $0.outcome == .success || $0.outcome == .autoRescued }
+            return source.filter { $0.outcome == .success || $0.outcome == .autoRescued }
         }
     }
 
@@ -52,7 +70,7 @@ public struct ParsingDiagnosticsView: View {
             Divider()
             footerBar
         }
-        .frame(minWidth: 640, minHeight: 520)
+        .frame(minWidth: 700, minHeight: 540)
     }
 
     private var headerBar: some View {
@@ -79,20 +97,20 @@ public struct ParsingDiagnosticsView: View {
 
     private var metricsBar: some View {
         HStack(spacing: 16) {
-            metricItem(title: "TOTAL ATTEMPTS", value: "\(logger.recentRecords.count)", color: .primary)
+            metricItem(title: "TOTAL ATTEMPTS", value: "\(scopeRecords.count)", color: .primary)
             metricItem(
                 title: "SUCCESSFUL",
-                value: "\(logger.recentRecords.filter { $0.outcome == .success || $0.outcome == .autoRescued }.count)",
+                value: "\(scopeRecords.filter { $0.outcome == .success || $0.outcome == .autoRescued }.count)",
                 color: .green
             )
             metricItem(
                 title: "PARSING FAILURES",
-                value: "\(logger.recentRecords.filter { $0.outcome == .decodingError || $0.outcome == .missingJson || $0.outcome == .networkError }.count)",
+                value: "\(scopeRecords.filter { $0.isFailure }.count)",
                 color: .red
             )
             metricItem(
                 title: "CLARIFICATIONS",
-                value: "\(logger.recentRecords.filter { $0.outcome == .clarification }.count)",
+                value: "\(scopeRecords.filter { $0.outcome == .clarification }.count)",
                 color: .orange
             )
             Spacer()
@@ -114,7 +132,19 @@ public struct ParsingDiagnosticsView: View {
     }
 
     private var filterBar: some View {
-        HStack {
+        HStack(spacing: 12) {
+            // Scope Picker: This Session vs All History
+            Picker("Scope", selection: $selectedScope) {
+                Text("This Session (\(logger.sessionRecords.count))").tag(DiagnosticsScope.thisSession)
+                Text("All History (\(logger.allRecords.count))").tag(DiagnosticsScope.allHistory)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 260)
+
+            Divider()
+                .frame(height: 18)
+
+            // Category Filter Picker
             Picker("Filter", selection: $selectedFilter) {
                 ForEach(DiagnosticsFilter.allCases) { filter in
                     Text(filter.rawValue).tag(filter)
@@ -125,7 +155,7 @@ public struct ParsingDiagnosticsView: View {
 
             Spacer()
 
-            Text("\(filteredRecords.count) records")
+            Text("\(filteredRecords.count) of \(scopeRecords.count)")
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
@@ -151,10 +181,15 @@ public struct ParsingDiagnosticsView: View {
                 Text(record.timestamp.formatted(date: .numeric, time: .standard))
                     .font(.caption2)
                     .foregroundColor(.secondary)
+
                 Spacer()
+
                 Text("mode: \(record.executionMode)")
                     .font(.system(size: 9, design: .monospaced))
                     .foregroundColor(.secondary)
+
+                // Copy Full Diagnostic Entry Button
+                copyRecordButton(record: record)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -163,6 +198,7 @@ public struct ParsingDiagnosticsView: View {
                     .foregroundColor(.secondary)
                 Text(record.userInput.isEmpty ? "(none)" : record.userInput)
                     .font(.body.weight(.medium))
+                    .textSelection(.enabled)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -171,7 +207,8 @@ public struct ParsingDiagnosticsView: View {
                     .foregroundColor(.secondary)
                 Text(record.rootCauseAnalysis)
                     .font(.callout)
-                    .foregroundColor(record.outcome == .decodingError || record.outcome == .missingJson ? .red : .primary)
+                    .foregroundColor(record.isFailure ? .red : .primary)
+                    .textSelection(.enabled)
             }
 
             // Expandable details (Raw output & JSON)
@@ -188,6 +225,7 @@ public struct ParsingDiagnosticsView: View {
                             }
                             Text(json)
                                 .font(.system(.caption2, design: .monospaced))
+                                .textSelection(.enabled)
                                 .padding(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(NSColor.textBackgroundColor))
@@ -205,6 +243,7 @@ public struct ParsingDiagnosticsView: View {
                         }
                         Text(record.rawLLMOutput.isEmpty ? "(empty string)" : record.rawLLMOutput)
                             .font(.system(.caption2, design: .monospaced))
+                            .textSelection(.enabled)
                             .padding(8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(Color(NSColor.textBackgroundColor))
@@ -294,13 +333,47 @@ public struct ParsingDiagnosticsView: View {
         .buttonStyle(.plain)
     }
 
+    private func copyRecordButton(record: ParsingDiagnosticsRecord) -> some View {
+        let entryId = record.id
+        return Button(action: {
+            var fullSummary = """
+            [DIAGNOSTICS RECORD]
+            Timestamp: \(record.timestamp.formatted(date: .numeric, time: .standard))
+            Outcome: \(record.outcome.rawValue)
+            Mode: \(record.executionMode)
+            User Input: \(record.userInput)
+            Root Cause: \(record.rootCauseAnalysis)
+            """
+            if let json = record.extractedJson, !json.isEmpty {
+                fullSummary += "\nExtracted JSON:\n\(json)"
+            }
+            if !record.rawLLMOutput.isEmpty {
+                fullSummary += "\nRaw LLM Output:\n\(record.rawLLMOutput)"
+            }
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(fullSummary, forType: .string)
+            copiedId = entryId
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                if copiedId == entryId { copiedId = nil }
+            }
+        }) {
+            HStack(spacing: 3) {
+                Image(systemName: copiedId == entryId ? "checkmark" : "doc.on.doc")
+                Text(copiedId == entryId ? "Copied Entry" : "Copy Entry")
+            }
+            .font(.system(size: 9))
+            .foregroundColor(.secondary)
+        }
+        .buttonStyle(.plain)
+    }
+
     private var emptyState: some View {
         VStack(spacing: 12) {
             Spacer()
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 40))
                 .foregroundColor(.green.opacity(0.6))
-            Text("No Diagnostics In This Filter")
+            Text("No Diagnostics In This Filter (\(selectedScope.rawValue))")
                 .font(.headline)
             Text("Generations and parsing attempts are logged here with real-time root cause analysis.")
                 .font(.caption)
@@ -320,10 +393,25 @@ public struct ParsingDiagnosticsView: View {
 
             Spacer()
 
-            Button(role: .destructive, action: { logger.clearLogs() }) {
-                Label("Clear Logs", systemImage: "trash")
-                    .font(.caption)
+            // Separate Clear menu for Session vs All History
+            Menu {
+                Button(role: .destructive, action: { logger.clearSessionLogs() }) {
+                    Label("Clear This Session (\(logger.sessionRecords.count))", systemImage: "clock.arrow.circlepath")
+                }
+                Button(role: .destructive, action: { logger.clearAllLogs() }) {
+                    Label("Clear All History (Disk & Memory)", systemImage: "trash")
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "trash")
+                    Text("Clear Logs...")
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8))
+                }
+                .font(.caption)
+                .foregroundColor(.red)
             }
+            .menuStyle(.borderlessButton)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)

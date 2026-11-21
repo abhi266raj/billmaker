@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 public struct ChatMessageBubble: View {
     let message: AgentMessage
@@ -6,7 +7,10 @@ public struct ChatMessageBubble: View {
     var onUndo: (() -> Void)? = nil
     var onSelectOption: ((String) -> Void)? = nil
     var onShowDiagnostics: (() -> Void)? = nil
+
     @State private var isThoughtExpanded: Bool = true
+    @State private var copiedThought: Bool = false
+    @State private var copiedMessageText: Bool = false
 
     public init(
         message: AgentMessage,
@@ -33,6 +37,7 @@ public struct ChatMessageBubble: View {
                         .background(Color.accentColor)
                         .foregroundColor(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .textSelection(.enabled)
 
                     Text(message.timestamp.formatted(date: .omitted, time: .shortened))
                         .font(.caption2)
@@ -54,30 +59,55 @@ public struct ChatMessageBubble: View {
                     // Thought Process Section (if available)
                     if let thought = message.thoughtProcess, !thought.isEmpty {
                         VStack(alignment: .leading, spacing: 6) {
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    isThoughtExpanded.toggle()
+                            HStack(spacing: 6) {
+                                Image(systemName: "brain.head.profile")
+                                    .foregroundColor(.purple)
+                                    .font(.caption)
+                                Text("Thought Process")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundColor(.purple)
+
+                                Spacer()
+
+                                Button(action: {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(thought, forType: .string)
+                                    copiedThought = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        copiedThought = false
+                                    }
+                                }) {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: copiedThought ? "checkmark" : "doc.on.doc")
+                                        Text(copiedThought ? "Copied" : "Copy Thought")
+                                    }
+                                    .font(.system(size: 9).weight(.medium))
+                                    .foregroundColor(.purple)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.purple.opacity(0.12))
+                                    .cornerRadius(4)
                                 }
-                            }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "brain.head.profile")
-                                        .foregroundColor(.purple)
-                                        .font(.caption)
-                                    Text("Thought Process")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundColor(.purple)
-                                    Spacer()
+                                .buttonStyle(.plain)
+                                .help("Copy thought process")
+
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        isThoughtExpanded.toggle()
+                                    }
+                                }) {
                                     Image(systemName: isThoughtExpanded ? "chevron.up" : "chevron.down")
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
 
                             if isThoughtExpanded {
                                 Text(thought)
                                     .font(.system(.caption2, design: .monospaced))
                                     .foregroundColor(.primary.opacity(0.85))
+                                    .textSelection(.enabled)
                                     .lineSpacing(2)
                                     .padding(8)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,7 +127,51 @@ public struct ChatMessageBubble: View {
                         Text(message.text)
                             .font(.body)
                             .foregroundColor(.primary)
+                            .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        // Verified Items Card: when verified items are recognized and added/updated
+                        if let verified = message.parsedItems, !verified.isEmpty {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundColor(.green)
+                                        .font(.caption)
+                                    Text("Verified Items Added to Bill (\(verified.count)):")
+                                        .font(.caption.weight(.bold))
+                                        .foregroundColor(.green)
+                                    Spacer()
+                                }
+
+                                ForEach(Array(verified.enumerated()), id: \.offset) { _, item in
+                                    HStack(alignment: .center, spacing: 6) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green.opacity(0.8))
+                                            .font(.system(size: 10))
+                                        Text(item.itemName)
+                                            .font(.caption.weight(.semibold))
+                                        Text("— \(formatQuantity(item.quantity)) \(item.unit)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        if let subtotal = item.subtotal {
+                                            Text(formatCurrency(subtotal))
+                                                .font(.caption.monospacedDigit().weight(.semibold))
+                                                .foregroundColor(.primary)
+                                        } else if let unitPrice = item.unitPrice {
+                                            Text(formatCurrency(unitPrice * item.quantity))
+                                                .font(.caption.monospacedDigit().weight(.semibold))
+                                                .foregroundColor(.primary)
+                                        }
+                                    }
+                                    .textSelection(.enabled)
+                                }
+                            }
+                            .padding(8)
+                            .background(Color.green.opacity(0.08))
+                            .cornerRadius(8)
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.green.opacity(0.2), lineWidth: 1))
+                        }
 
                         // Auto-correction note & Undo row
                         if message.hasAutoCorrection, let note = message.autoCorrectionNote {
@@ -230,11 +304,33 @@ public struct ChatMessageBubble: View {
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red.opacity(0.2), lineWidth: 1))
                         }
 
-                        // Status & JSON inspect button row
+                        // Status, Copy Result & JSON inspect button row
                         HStack(spacing: 8) {
                             statusBadge
 
                             Spacer()
+
+                            // Copy message text / result button
+                            Button(action: {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(message.text, forType: .string)
+                                copiedMessageText = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                    copiedMessageText = false
+                                }
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: copiedMessageText ? "checkmark" : "doc.on.doc")
+                                    Text(copiedMessageText ? "Copied" : "Copy Result")
+                                }
+                                .font(.caption2.weight(.medium))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 4)
+                                .background(Color.secondary.opacity(0.12))
+                                .cornerRadius(6)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Copy message result text to clipboard")
 
                             if let json = message.rawJsonOutput, !json.isEmpty {
                                 Button(action: { onInspectJson(json) }) {
@@ -265,6 +361,14 @@ public struct ChatMessageBubble: View {
                 Spacer(minLength: 50)
             }
         }
+    }
+
+    private func formatQuantity(_ qty: Double) -> String {
+        qty.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(qty))" : String(format: "%.2f", qty)
+    }
+
+    private func formatCurrency(_ amount: Double) -> String {
+        String(format: "₹%.2f", amount)
     }
 
     private var agentAvatarColor: Color {

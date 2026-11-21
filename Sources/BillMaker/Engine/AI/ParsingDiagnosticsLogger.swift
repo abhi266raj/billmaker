@@ -52,6 +52,8 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
 public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendable {
     public static let shared = ParsingDiagnosticsLogger()
 
+    @Published public private(set) var sessionRecords: [ParsingDiagnosticsRecord] = []
+    @Published public private(set) var allRecords: [ParsingDiagnosticsRecord] = []
     @Published public private(set) var recentRecords: [ParsingDiagnosticsRecord] = []
     private let queue = DispatchQueue(label: "com.billmaker.diagnostics.logger", qos: .utility)
     private let maxInMemoryRecords = 100
@@ -95,10 +97,15 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
 
         let updateInMemory = { [weak self] in
             guard let self = self else { return }
-            self.recentRecords.insert(record, at: 0)
-            if self.recentRecords.count > self.maxInMemoryRecords {
-                self.recentRecords.removeLast()
+            self.sessionRecords.insert(record, at: 0)
+            if self.sessionRecords.count > self.maxInMemoryRecords {
+                self.sessionRecords.removeLast()
             }
+            self.allRecords.insert(record, at: 0)
+            if self.allRecords.count > self.maxInMemoryRecords {
+                self.allRecords.removeLast()
+            }
+            self.recentRecords = self.allRecords
         }
 
         if Thread.isMainThread {
@@ -150,20 +157,55 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
             }
 
             DispatchQueue.main.async {
-                self.recentRecords = loaded.reversed()
+                // Merge persisted records with any session records already logged
+                var combined = self.sessionRecords
+                for rec in loaded.reversed() {
+                    if !combined.contains(where: { $0.id == rec.id }) {
+                        combined.append(rec)
+                    }
+                }
+                if combined.count > self.maxInMemoryRecords {
+                    combined = Array(combined.prefix(self.maxInMemoryRecords))
+                }
+                self.allRecords = combined
+                self.recentRecords = combined
             }
         }
     }
 
-    /// Clears both in-memory and disk logs.
-    public func clearLogs() {
-        DispatchQueue.main.async {
-            self.recentRecords.removeAll()
+    /// Clears only records accumulated during the current app run.
+    public func clearSessionLogs() {
+        let update: () -> Void = { [weak self] in
+            self?.sessionRecords.removeAll()
+        }
+        if Thread.isMainThread {
+            update()
+        } else {
+            DispatchQueue.main.async(execute: update)
+        }
+    }
+
+    /// Clears all logs across disk and memory.
+    public func clearAllLogs() {
+        let update: () -> Void = { [weak self] in
+            self?.sessionRecords.removeAll()
+            self?.allRecords.removeAll()
+            self?.recentRecords.removeAll()
+        }
+        if Thread.isMainThread {
+            update()
+        } else {
+            DispatchQueue.main.async(execute: update)
         }
         queue.async { [weak self] in
             guard let self = self else { return }
             try? FileManager.default.removeItem(at: self.logFileURL)
         }
+    }
+
+    /// Clears both in-memory and disk logs (backwards compatibility).
+    public func clearLogs() {
+        clearAllLogs()
     }
 
     /// Reveals the diagnostics log file in macOS Finder.

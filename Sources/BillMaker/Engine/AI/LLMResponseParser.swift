@@ -244,9 +244,17 @@ public struct LLMResponseParser {
                 return nil
             }()
 
+            var messageText = payload.message
+            if let verified = verifiedItems, !verified.isEmpty {
+                let verifiedDesc = verified.map { "\($0.quantity.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int($0.quantity))" : "\($0.quantity)") \($0.unit) \($0.itemName)" }.joined(separator: ", ")
+                if !messageText.localizedCaseInsensitiveContains(verified[0].itemName) {
+                    messageText = "Added \(verifiedDesc) to the bill.\n\(messageText)"
+                }
+            }
+
             return AgentMessage(
                 role: .agent,
-                text: payload.message,
+                text: messageText,
                 thoughtProcess: thought ?? payload.thought ?? "Clarification requested for ambiguous item.",
                 rawJsonOutput: extractedJson,
                 status: .needsClarification,
@@ -262,7 +270,7 @@ public struct LLMResponseParser {
         if ItemCatalogMatcher.isGenericOilQuery(userInput) {
             let oilCandidates = catalog.filter { $0.name.localizedCaseInsensitiveContains("oil") }.map { $0.name }
             if !oilCandidates.isEmpty {
-                let promptMsg: String
+                var promptMsg: String
                 if oilCandidates.count == 1 {
                     let single = catalog.first { $0.name == oilCandidates[0] }
                     let priceStr = single != nil ? " (\(settings.currencySymbol)\(single!.pricePerUnit)/\(single!.unitType.shortLabel))" : ""
@@ -292,6 +300,13 @@ public struct LLMResponseParser {
                     }
                     return nil
                 }()
+
+                if let verified = verifiedItems, !verified.isEmpty {
+                    let verifiedDesc = verified.map { "\($0.quantity.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int($0.quantity))" : "\($0.quantity)") \($0.unit) \($0.itemName)" }.joined(separator: ", ")
+                    if !promptMsg.localizedCaseInsensitiveContains(verified[0].itemName) {
+                        promptMsg = "Added \(verifiedDesc) to the bill.\n\(promptMsg)"
+                    }
+                }
 
                 let pending = PendingClarification(
                     query: userInput,
