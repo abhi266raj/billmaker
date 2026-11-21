@@ -5,6 +5,7 @@ public struct AgentHarnessView: View {
     @StateObject private var speechService = SpeechRecognitionService()
     @State private var inputText: String = ""
     @State private var inspectingJson: String? = nil
+    @State private var showDiagnosticsSheet: Bool = false
     @FocusState private var isInputFocused: Bool
 
     private let samplePrompts = [
@@ -49,6 +50,9 @@ public struct AgentHarnessView: View {
             set: { inspectingJson = $0?.value }
         )) { item in
             JSONInspectorView(jsonText: item.value)
+        }
+        .sheet(isPresented: $showDiagnosticsSheet) {
+            ParsingDiagnosticsView()
         }
         .onAppear {
             isInputFocused = true
@@ -102,6 +106,14 @@ public struct AgentHarnessView: View {
 
             Spacer()
 
+            Button(action: { showDiagnosticsSheet = true }) {
+                Label("Diagnostics", systemImage: "stethoscope")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+            .help("View AI generation parsing logs and failure analysis")
+
             Button(action: { appState.clearConversation() }) {
                 Label("Clear Chat", systemImage: "trash")
                     .font(.caption)
@@ -129,6 +141,9 @@ public struct AgentHarnessView: View {
                             },
                             onSelectOption: { option in
                                 appState.processInput(option)
+                            },
+                            onShowDiagnostics: {
+                                showDiagnosticsSheet = true
                             }
                         )
                         .id(message.id)

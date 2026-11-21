@@ -47,12 +47,22 @@ public final class AppleFMAgentEngine: AgentEngine, @unchecked Sendable {
                     currencySymbol: settings.currencySymbol
                 )
             }
-            return LLMResponseParser.parse(content: content, catalog: catalog, settings: settings)
+            return LLMResponseParser.parse(content: content, catalog: catalog, settings: settings, userInput: userInput)
         } catch {
+            let errorMsg = error.localizedDescription
+            ParsingDiagnosticsLogger.shared.log(
+                userInput: userInput,
+                rawLLMOutput: "",
+                outcome: .networkError,
+                rootCauseAnalysis: "Engine dispatch exception: \(errorMsg)",
+                executionMode: settings.executionMode.rawValue,
+                itemsParsedCount: 0
+            )
+
             return AgentMessage(
                 role: .agent,
-                text: "Error generating response: \(error.localizedDescription)",
-                thoughtProcess: "Execution error: \(error.localizedDescription)",
+                text: "Error generating response: \(errorMsg)",
+                thoughtProcess: "Execution error: \(errorMsg)",
                 status: .error
             )
         }

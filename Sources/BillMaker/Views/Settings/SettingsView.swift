@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct SettingsView: View {
     @ObservedObject var appState: AppState
+    @State private var showDiagnostics: Bool = false
 
     public init(appState: AppState) {
         self.appState = appState
@@ -117,8 +118,38 @@ public struct SettingsView: View {
                 Toggle("Haptic / Audio Feedback", isOn: $appState.settings.enableHapticFeedback)
                     .onChange(of: appState.settings.enableHapticFeedback) { _ in appState.saveSettings() }
             }
+
+            Section(header: Text("Diagnostics & Observability")) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("LLM Parsing & Generation Telemetry")
+                            .font(.subheadline)
+                        Text("Real-time telemetry, failure root-cause analysis, and raw prompt/output logs.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button(action: { showDiagnostics = true }) {
+                        Label("Inspect Telemetry", systemImage: "stethoscope")
+                    }
+                }
+
+                HStack {
+                    Text("Persistent Log File:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Button("Reveal Log in Finder") {
+                        ParsingDiagnosticsLogger.shared.openLogInFinder()
+                    }
+                    .font(.caption)
+                }
+            }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 520, minHeight: 440)
+        .frame(minWidth: 520, minHeight: 480)
+        .sheet(isPresented: $showDiagnostics) {
+            ParsingDiagnosticsView()
+        }
     }
 }

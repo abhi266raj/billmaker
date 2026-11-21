@@ -5,18 +5,21 @@ public struct ChatMessageBubble: View {
     let onInspectJson: (String) -> Void
     var onUndo: (() -> Void)? = nil
     var onSelectOption: ((String) -> Void)? = nil
+    var onShowDiagnostics: (() -> Void)? = nil
     @State private var isThoughtExpanded: Bool = true
 
     public init(
         message: AgentMessage,
         onInspectJson: @escaping (String) -> Void,
         onUndo: (() -> Void)? = nil,
-        onSelectOption: ((String) -> Void)? = nil
+        onSelectOption: ((String) -> Void)? = nil,
+        onShowDiagnostics: (() -> Void)? = nil
     ) {
         self.message = message
         self.onInspectJson = onInspectJson
         self.onUndo = onUndo
         self.onSelectOption = onSelectOption
+        self.onShowDiagnostics = onShowDiagnostics
     }
 
     public var body: some View {
@@ -197,6 +200,36 @@ public struct ChatMessageBubble: View {
                             .padding(.top, 2)
                         }
 
+                        // Parsing failure diagnostic banner
+                        if message.status == .error, let showDiag = onShowDiagnostics {
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.caption2)
+                                Text("Parsing failure recorded.")
+                                    .font(.caption2)
+                                    .foregroundColor(.red)
+                                Spacer()
+                                Button(action: showDiag) {
+                                    HStack(spacing: 3) {
+                                        Image(systemName: "stethoscope")
+                                        Text("Inspect Diagnostics")
+                                    }
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(.red)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Color.red.opacity(0.12))
+                                    .cornerRadius(6)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            .padding(8)
+                            .background(Color.red.opacity(0.06))
+                            .cornerRadius(8)
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red.opacity(0.2), lineWidth: 1))
+                        }
+
                         // Status & JSON inspect button row
                         HStack(spacing: 8) {
                             statusBadge
@@ -238,6 +271,7 @@ public struct ChatMessageBubble: View {
         switch message.status {
         case .ready: return .green
         case .needsClarification: return .orange
+        case .notFound: return .secondary
         case .thinking: return .blue
         case .error: return .red
         case .info: return .purple
@@ -248,6 +282,7 @@ public struct ChatMessageBubble: View {
         switch message.status {
         case .ready: return "checkmark.seal.fill"
         case .needsClarification: return "questionmark.bubble.fill"
+        case .notFound: return "magnifyingglass"
         case .thinking: return "hourglass"
         case .error: return "exclamationmark.triangle.fill"
         case .info: return "sparkles"
@@ -266,6 +301,11 @@ public struct ChatMessageBubble: View {
             HStack(spacing: 3) {
                 Circle().fill(Color.orange).frame(width: 6, height: 6)
                 Text("Needs Clarification").font(.caption2).foregroundColor(.orange)
+            }
+        case .notFound:
+            HStack(spacing: 3) {
+                Circle().fill(Color.secondary).frame(width: 6, height: 6)
+                Text("Item Not Found").font(.caption2).foregroundColor(.secondary)
             }
         case .error:
             HStack(spacing: 3) {

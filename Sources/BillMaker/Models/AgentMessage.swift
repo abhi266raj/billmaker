@@ -9,6 +9,7 @@ public enum AgentRole: String, Codable {
 public enum AgentResponseStatus: String, Codable {
     case ready               // All items resolved, bill computed
     case needsClarification  // Missing weight/quantity, multiple matches, or ambiguous item
+    case notFound            // Item requested is not in the store catalog
     case thinking            // In-flight
     case error               // Parsing or connection error
     case info                // General system notice
@@ -302,6 +303,7 @@ public struct AgentJsonPayload: Codable {
     public var totalWeightKg: Double?
     public var items: [AgentParsedItem]?
     public var questions: [String]?
+    public var options: [String]?
     public var pendingClarification: PendingClarification?
     public var unitCorrections: [String]?
 
@@ -313,6 +315,7 @@ public struct AgentJsonPayload: Codable {
         totalWeightKg: Double? = nil,
         items: [AgentParsedItem]? = nil,
         questions: [String]? = nil,
+        options: [String]? = nil,
         pendingClarification: PendingClarification? = nil,
         unitCorrections: [String]? = nil
     ) {
@@ -323,6 +326,7 @@ public struct AgentJsonPayload: Codable {
         self.totalWeightKg = totalWeightKg
         self.items = items
         self.questions = questions
+        self.options = options
         self.pendingClarification = pendingClarification
         self.unitCorrections = unitCorrections
     }
@@ -397,6 +401,7 @@ public struct AgentJsonPayload: Codable {
                 break
             }
         }
+        self.options = resOptions
 
         var resClarification = try? container.decodeIfPresent(PendingClarification.self, forKey: DynamicCodingKeys(stringValue: "pendingClarification")!)
         if resClarification == nil, let opts = resOptions, !opts.isEmpty {

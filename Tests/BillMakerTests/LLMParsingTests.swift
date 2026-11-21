@@ -175,7 +175,7 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertNotNil(parsedMessage.thoughtProcess)
     }
 
-    func testClarificationPayloadWithEmptyItemsAutoResolvesMentionedCatalogItem() {
+    func testClarificationPayloadWithEmptyItemsAsksForClarification() {
         let clarificationOutput = """
         ```json
         {
@@ -194,10 +194,139 @@ final class LLMParsingTests: XCTestCase {
         let parsedMessage = LLMResponseParser.parse(
             content: clarificationOutput,
             catalog: catalog,
-            settings: .defaultSettings
+            settings: .defaultSettings,
+            userInput: "1kg oil"
         )
 
-        // Verifies the parser auto-rescues the catalog item so billing never drops the item
+        // Verifies clarification questions are recognized as clarifications and never falsely auto-billed
+        XCTAssertEqual(parsedMessage.status, .needsClarification)
+        XCTAssertTrue(parsedMessage.text.contains("Mustard Oil"))
+        XCTAssertEqual(parsedMessage.pendingClarification?.candidateNames.contains("Mustard Oil"), true)
+    }
+
+    func testItemNotFoundReturnsNotFoundStatus() {
+        let notFoundJson = """
+        ```json
+        {
+          "status": "not_found",
+          "message": "Item 'salt' was not found in the store catalog.",
+          "thought": "Salt is not available in the store catalog.",
+          "items": []
+        }
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: notFoundJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "1kg salt"
+        )
+
+        XCTAssertEqual(parsedMessage.status, .notFound)
+        XCTAssertTrue(parsedMessage.text.contains("salt"))
+        XCTAssertNil(parsedMessage.parsedItems)
+        XCTAssertNil(parsedMessage.billSummary)
+    }
+
+    func testSaltRequestedInterceptsHallucinatedBasmatiRiceMapping() {
+        let hallucinatedPayload = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 1 kg Basmati Rice to the bill.",
+          "thought": "Mapped salt to rice.",
+          "items": [
+            {
+              "itemName": "Basmati Rice",
+              "quantity": 1.0,
+              "unit": "kg",
+              "unitPrice": 110.0
+            }
+          ]
+        }
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: hallucinatedPayload,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "1kg salt"
+        )
+
+        // Intercepts false match and converts to .notFound
+        XCTAssertEqual(parsedMessage.status, .notFound)
+        XCTAssertTrue(parsedMessage.text.contains("salt"))
+        XCTAssertNil(parsedMessage.parsedItems)
+        XCTAssertNil(parsedMessage.billSummary)
+    }
+
+    func testGenericOilQueryAsksClarificationInsteadOfAutoBilling() {
+        let readyOilPayload = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 1 L Mustard Oil to the bill.",
+          "thought": "Assumed mustard oil.",
+          "items": [
+            {
+              "itemName": "Mustard Oil",
+              "quantity": 1.0,
+              "unit": "L",
+              "unitPrice": 160.0
+            }
+          ]
+        }
+        ```
+        """
+
+        let multiOilCatalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
+        ]
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: readyOilPayload,
+            catalog: multiOilCatalog,
+            settings: .defaultSettings,
+            userInput: "1kg oil"
+        )
+
+        // Verifies that generic "oil" requests prompt for clarification rather than falsely guessing Mustard Oil
+        XCTAssertEqual(parsedMessage.status, .needsClarification)
+        XCTAssertTrue(parsedMessage.text.contains("oil") || parsedMessage.text.contains("Oil"))
+        XCTAssertNotNil(parsedMessage.pendingClarification)
+        XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Mustard Oil") == true)
+        XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Sunflower Oil") == true)
+    }
+
+    func testUnambiguousMustardOilQueryBillsDirectly() {
+        let readyOilPayload = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 1 L Mustard Oil to the bill.",
+          "thought": "Direct match for mustard oil.",
+          "items": [
+            {
+              "itemName": "Mustard Oil",
+              "quantity": 1.0,
+              "unit": "L",
+              "unitPrice": 160.0
+            }
+          ]
+        }
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: readyOilPayload,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "1L mustard oil"
+        )
+
         XCTAssertEqual(parsedMessage.status, .ready)
         XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
         XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Mustard Oil")
@@ -234,6 +363,58 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(parsedMessage.pendingClarification?.candidateNames.count, 2)
         XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Mustard Oil") == true)
         XCTAssertTrue(parsedMessage.pendingClarification?.candidateNames.contains("Sunflower Oil") == true)
+    }
+
+    func testDiagnosticsLoggerCapturesFailureTelemetry() {
+        let malformedJson = """
+        ```json
+        {
+          "status": "ready",
+          "items": "not-an-array"
+        }
+        ```
+        """
+
+        _ = LLMResponseParser.parse(
+            content: malformedJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg apple test"
+        )
+
+        let records = ParsingDiagnosticsLogger.shared.recentRecords
+        guard let latestRecord = records.first else {
+            XCTFail("Diagnostics record was not recorded")
+            return
+        }
+
+        XCTAssertEqual(latestRecord.outcome, .decodingError)
+        XCTAssertTrue(latestRecord.isFailure)
+        XCTAssertEqual(latestRecord.userInput, "2kg apple test")
+        XCTAssertTrue(latestRecord.extractedJson?.contains("not-an-array") == true)
+        XCTAssertNotNil(latestRecord.rootCauseAnalysis)
+    }
+
+    func testDiagnosticsLoggerCapturesMissingJsonTelemetry() {
+        let plainText = "I have added nothing because no JSON exists here."
+
+        _ = LLMResponseParser.parse(
+            content: plainText,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "hello world"
+        )
+
+        let records = ParsingDiagnosticsLogger.shared.recentRecords
+        guard let latestRecord = records.first else {
+            XCTFail("Diagnostics record was not recorded")
+            return
+        }
+
+        XCTAssertEqual(latestRecord.outcome, .missingJson)
+        XCTAssertTrue(latestRecord.isFailure)
+        XCTAssertEqual(latestRecord.userInput, "hello world")
+        XCTAssertNil(latestRecord.extractedJson)
     }
 
     func testLiveDaemonIntegrationIfOnline() async throws {
