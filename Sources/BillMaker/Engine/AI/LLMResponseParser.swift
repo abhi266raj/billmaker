@@ -119,6 +119,63 @@ public struct LLMResponseParser {
             ))
 
         if isClarificationRequest {
+            // Check if user input already uniquely matches one of the candidate items or catalog items
+            let cleanUser = userInput.trimmingCharacters(in: .whitespacesAndNewlines)
+            let specificMatches = catalog.filter { cat in
+                !cleanUser.isEmpty && (
+                    cleanUser.localizedCaseInsensitiveContains(cat.name) ||
+                    cat.name.localizedCaseInsensitiveContains(cleanUser) ||
+                    ItemCatalogMatcher.aliases(for: cat.name).contains { alias in
+                        alias.count >= 4 && cleanUser.localizedCaseInsensitiveContains(alias)
+                    }
+                )
+            }
+
+            // If user's input explicitly matches exactly ONE catalog item and is not a generic query (like "oil" or "tel"),
+            // DO NOT repeat the clarification! Resolve it directly to ready!
+            if specificMatches.count == 1, let matched = specificMatches.first, !ItemCatalogMatcher.isGenericOilQuery(cleanUser) {
+                let qty = payload.pendingClarification?.quantity ?? 1.0
+                let unit = payload.pendingClarification?.unit.isEmpty == false
+                    ? payload.pendingClarification!.unit
+                    : matched.unitType.shortLabel
+
+                let resolvedItem = AgentParsedItem(
+                    itemId: matched.id.uuidString,
+                    itemName: matched.name,
+                    quantity: qty,
+                    unit: unit,
+                    unitPrice: matched.pricePerUnit
+                )
+
+                let summary = BillCalculator.computeBill(
+                    from: [resolvedItem],
+                    catalog: catalog,
+                    currencySymbol: settings.currencySymbol,
+                    taxRatePercent: settings.taxRatePercent
+                )
+
+                ParsingDiagnosticsLogger.shared.log(
+                    userInput: userInput,
+                    rawLLMOutput: content,
+                    extractedJson: extractedJson,
+                    outcome: .autoRescued,
+                    rootCauseAnalysis: "Auto-resolved clarification because user specified exact catalog item '\(matched.name)'.",
+                    executionMode: settings.executionMode.rawValue,
+                    itemsParsedCount: 1
+                )
+
+                return AgentMessage(
+                    role: .agent,
+                    text: "Added \(qty) \(unit) \(matched.name) to the bill.",
+                    thoughtProcess: thought ?? "Unambiguous request for '\(matched.name)'; resolved directly without redundant clarification.",
+                    rawJsonOutput: extractedJson,
+                    status: .ready,
+                    billSummary: summary,
+                    parsedItems: [resolvedItem],
+                    canUndo: true
+                )
+            }
+
             var candidateNames: [String] = {
                 if let existing = payload.pendingClarification?.candidateNames, !existing.isEmpty {
                     return existing
@@ -259,34 +316,48 @@ public struct LLMResponseParser {
             )
         }
 
-        // 3d. False Match / Hallucination Prevention (e.g. Salt -> Basmati Rice)
+        // 3d. False Match / Hallucination Prevention & Mixed Multi-Item Matching
+        var partialNote: String? = nil
         if !userInput.isEmpty {
+            var validItems: [AgentParsedItem] = []
+            var droppedFalseItems: [String] = []
+
             for item in items {
                 let matches = ItemCatalogMatcher.itemMatchesUserInput(itemName: item.itemName, userInput: userInput)
-                if !matches {
-                    let requestedSubject = ItemCatalogMatcher.extractRequestedItemSubject(from: userInput) ?? "item"
-                    let notFoundText = "No match found. Item '\(requestedSubject)' was not found in the store catalog."
-                    let rca = "Prevented false match: customer requested '\(requestedSubject)', model hallucinated '\(item.itemName)'."
-
-                    ParsingDiagnosticsLogger.shared.log(
-                        userInput: userInput,
-                        rawLLMOutput: content,
-                        extractedJson: extractedJson,
-                        outcome: .clarification,
-                        rootCauseAnalysis: rca,
-                        executionMode: settings.executionMode.rawValue,
-                        itemsParsedCount: 0
-                    )
-
-                    return AgentMessage(
-                        role: .agent,
-                        text: notFoundText,
-                        thoughtProcess: thought ?? rca,
-                        rawJsonOutput: extractedJson,
-                        status: .notFound,
-                        canUndo: false
-                    )
+                if matches {
+                    validItems.append(item)
+                } else {
+                    droppedFalseItems.append(item.itemName)
                 }
+            }
+
+            if validItems.isEmpty {
+                let requestedSubject = ItemCatalogMatcher.extractRequestedItemSubject(from: userInput) ?? "item"
+                let notFoundText = "No match found. Item '\(requestedSubject)' was not found in the store catalog."
+                let rca = "Prevented false match: customer requested '\(requestedSubject)', model hallucinated '\(items.map(\.itemName).joined(separator: ", "))'."
+
+                ParsingDiagnosticsLogger.shared.log(
+                    userInput: userInput,
+                    rawLLMOutput: content,
+                    extractedJson: extractedJson,
+                    outcome: .clarification,
+                    rootCauseAnalysis: rca,
+                    executionMode: settings.executionMode.rawValue,
+                    itemsParsedCount: 0
+                )
+
+                return AgentMessage(
+                    role: .agent,
+                    text: notFoundText,
+                    thoughtProcess: thought ?? rca,
+                    rawJsonOutput: extractedJson,
+                    status: .notFound,
+                    canUndo: false
+                )
+            } else if validItems.count < items.count {
+                // Partial match: customer ordered multiple items; some were valid, others were not in catalog!
+                items = validItems
+                partialNote = "Note: Requested item not in store catalog was excluded."
             }
         }
 
@@ -308,11 +379,17 @@ public struct LLMResponseParser {
 
         // 6. Extract user-facing message
         let displayText: String = {
-            if !payload.message.isEmpty {
-                return payload.message
+            let base: String
+            if !payload.message.isEmpty && partialNote == nil {
+                base = payload.message
+            } else {
+                let itemDesc = items.map { "\($0.quantity)\($0.unit.isEmpty ? "" : " " + $0.unit) \($0.itemName)" }.joined(separator: ", ")
+                base = "Added \(itemDesc) to the bill."
             }
-            let itemDesc = items.map { "\($0.quantity)\($0.unit.isEmpty ? "" : " " + $0.unit) \($0.itemName)" }.joined(separator: ", ")
-            return "Added \(itemDesc) to the bill."
+            if let note = partialNote {
+                return "\(base) (\(note))"
+            }
+            return base
         }()
 
         let status: AgentResponseStatus = (payload.status == "needs_clarification") ? .needsClarification : .ready

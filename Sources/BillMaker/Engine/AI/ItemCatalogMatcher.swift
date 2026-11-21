@@ -39,11 +39,11 @@ public struct ItemCatalogMatcher {
         if lower.contains("paneer") {
             list.append(contentsOf: ["cottage cheese", "paneer"])
         }
-        if lower.contains("mustard oil") {
-            list.append(contentsOf: ["sarson tel", "sarson ka tel", "mustard oil", "sarson"])
+        if lower.contains("mustard oil") || lower.contains("mustard") {
+            list.append(contentsOf: ["sarson", "sarson tel", "sarson ka tel", "mustard oil", "mustard", "rai"])
         }
-        if lower.contains("sunflower oil") {
-            list.append(contentsOf: ["surajmukhi tel", "sunflower oil", "soorajmukhi"])
+        if lower.contains("sunflower oil") || lower.contains("sunflower") {
+            list.append(contentsOf: ["surajmukhi", "soorajmukhi", "surajmukhi tel", "sunflower oil", "sunflower"])
         }
         if lower.contains("rice") {
             list.append(contentsOf: ["chawal", "rice", "bhat"])
@@ -131,5 +131,92 @@ public struct ItemCatalogMatcher {
             lower.contains("refined")
 
         return !hasSpecificVariety
+    }
+
+    /// Converts Devanagari numerals ('०'-'९') to standard Western digits ('0'-'9').
+    public static func normalizeNumerals(_ text: String) -> String {
+        let devanagariDigits: [Character: Character] = [
+            "०": "0", "१": "1", "२": "2", "३": "3", "४": "4",
+            "५": "5", "६": "6", "७": "7", "८": "8", "९": "9"
+        ]
+        return String(text.map { devanagariDigits[$0] ?? $0 })
+    }
+
+    /// Normalizes colloquial Hindi/Hinglish quantities to standard numerical values.
+    public static func normalizeColloquials(_ text: String) -> String {
+        var str = normalizeNumerals(text.lowercased())
+        let replacements: [(String, String)] = [
+            ("aadha kilo", "0.5 kg"),
+            ("adha kilo", "0.5 kg"),
+            ("aadha kg", "0.5 kg"),
+            ("dedh kilo", "1.5 kg"),
+            ("dedh kg", "1.5 kg"),
+            ("dhai kilo", "2.5 kg"),
+            ("dhai kg", "2.5 kg"),
+            ("paav kilo", "0.25 kg"),
+            ("ek paav", "0.25 kg"),
+            ("teen paav", "0.75 kg"),
+            ("dhai sau gram", "250g"),
+            ("dhai sau gm", "250g"),
+            ("panch sau gram", "500g"),
+            ("half dozen", "0.5 dozen"),
+            ("aadha darjan", "0.5 dozen"),
+            ("ek darjan", "1 dozen")
+        ]
+        for (pattern, rep) in replacements {
+            str = str.replacingOccurrences(of: pattern, with: rep)
+        }
+        return str
+    }
+
+    /// Resolves user's conversational reply to a pending clarification (handling ordinals, affirmations, and candidate names).
+    public static func resolveClarificationChoice(
+        userInput: String,
+        pending: PendingClarification,
+        catalog: [Item]
+    ) -> (item: Item, quantity: Double, unit: String)? {
+        let clean = userInput.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.isEmpty { return nil }
+
+        // 1. Ordinal choices: "first", "1st", "pehla", "pehle wala", "1"
+        if clean == "1" || clean == "1st" || clean == "first" || clean.contains("pehla") || clean.contains("pehle") {
+            if let firstCandidate = pending.candidateNames.first,
+               let catItem = catalog.first(where: { $0.name == firstCandidate }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // 2. Second choice: "second", "2nd", "dusra", "doosra", "2"
+        if clean == "2" || clean == "2nd" || clean == "second" || clean.contains("dusra") || clean.contains("doosra") {
+            if pending.candidateNames.count >= 2,
+               let catItem = catalog.first(where: { $0.name == pending.candidateNames[1] }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // 3. Affirmation: "haan", "yes", "ok", "theek hai", "sure", "wahi"
+        if clean == "yes" || clean == "haan" || clean == "ha" || clean == "ok" || clean == "theek hai" || clean == "wahi" {
+            if let firstCandidate = pending.candidateNames.first,
+               let catItem = catalog.first(where: { $0.name == firstCandidate }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // 4. Candidate name match or alias match:
+        for candidateName in pending.candidateNames {
+            if let catItem = catalog.first(where: { $0.name == candidateName }) {
+                let candidateAliases = aliases(for: candidateName)
+                if clean.localizedCaseInsensitiveContains(candidateName) || candidateName.localizedCaseInsensitiveContains(clean) {
+                    return (catItem, pending.quantity, pending.unit)
+                }
+                for alias in candidateAliases where alias.count >= 3 {
+                    if clean.contains(alias) || alias.contains(clean) {
+                        return (catItem, pending.quantity, pending.unit)
+                    }
+                }
+            }
+        }
+
+        return nil
     }
 }

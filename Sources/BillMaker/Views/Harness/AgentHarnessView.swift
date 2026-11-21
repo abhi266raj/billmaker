@@ -140,7 +140,7 @@ public struct AgentHarnessView: View {
                                 appState.undo()
                             },
                             onSelectOption: { option in
-                                appState.processInput(option)
+                                appState.selectClarificationOption(option)
                             },
                             onShowDiagnostics: {
                                 showDiagnosticsSheet = true

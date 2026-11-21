@@ -23,7 +23,7 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertTrue(systemPrompt.contains("₹160.0"))
 
         // Must contain critical rules
-        XCTAssertTrue(systemPrompt.contains("Process ONLY the customer's current request"))
+        XCTAssertTrue(systemPrompt.contains("Context & Conversation Continuity"))
         XCTAssertTrue(systemPrompt.contains("<thought>...</thought>"))
         XCTAssertTrue(systemPrompt.contains("```json"))
     }
@@ -331,6 +331,121 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
         XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Mustard Oil")
         XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 160.0)
+    }
+
+    func testClarificationResolvedDirectlyWhenUserSelectsOrTypesSunflowerOil() {
+        let clarificationJson = """
+        ```json
+        {
+          "status": "needs_clarification",
+          "message": "Which oil would you like? We have Mustard Oil (₹160.0/L) and Sunflower Oil (₹145.0/L).",
+          "thought": "Ambiguous oil requested with multiple candidate matches; asking for clarification.",
+          "options": ["Mustard Oil", "Sunflower Oil"],
+          "pendingClarification": {
+            "query": "oil",
+            "quantity": 1.0,
+            "unit": "L",
+            "candidateNames": ["Mustard Oil", "Sunflower Oil"]
+          }
+        }
+        ```
+        """
+
+        let multiOilCatalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
+        ]
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: clarificationJson,
+            catalog: multiOilCatalog,
+            settings: .defaultSettings,
+            userInput: "Sunflower Oil"
+        )
+
+        // Verifies that specifying "Sunflower Oil" overrides redundant clarification and resolves directly to ready
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
+        XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Sunflower Oil")
+        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 145.0)
+    }
+
+    func testColloquialQuantitiesAndNumeralsNormalization() {
+        XCTAssertEqual(ItemCatalogMatcher.normalizeNumerals("२ किलो"), "2 किलो")
+        XCTAssertEqual(ItemCatalogMatcher.normalizeColloquials("dedh kilo aloo"), "1.5 kg aloo")
+        XCTAssertEqual(ItemCatalogMatcher.normalizeColloquials("aadha kilo tamatar"), "0.5 kg tamatar")
+        XCTAssertEqual(ItemCatalogMatcher.normalizeColloquials("dhai sau gram adrak"), "250g adrak")
+    }
+
+    func testClarificationChoiceResolutionWithOrdinalsAndNames() {
+        let catalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
+        ]
+        let pending = PendingClarification(
+            query: "oil",
+            quantity: 2.0,
+            unit: "L",
+            candidateNames: ["Mustard Oil", "Sunflower Oil"]
+        )
+
+        // Test ordinal "first"
+        let res1 = ItemCatalogMatcher.resolveClarificationChoice(userInput: "first", pending: pending, catalog: catalog)
+        XCTAssertEqual(res1?.item.name, "Mustard Oil")
+        XCTAssertEqual(res1?.quantity, 2.0)
+
+        // Test ordinal "2nd"
+        let res2 = ItemCatalogMatcher.resolveClarificationChoice(userInput: "2nd", pending: pending, catalog: catalog)
+        XCTAssertEqual(res2?.item.name, "Sunflower Oil")
+        XCTAssertEqual(res2?.quantity, 2.0)
+
+        // Test colloquial "surajmukhi"
+        let res3 = ItemCatalogMatcher.resolveClarificationChoice(userInput: "surajmukhi", pending: pending, catalog: catalog)
+        XCTAssertEqual(res3?.item.name, "Sunflower Oil")
+
+        // Test affirmation "haan" confirms first candidate
+        let res4 = ItemCatalogMatcher.resolveClarificationChoice(userInput: "haan", pending: pending, catalog: catalog)
+        XCTAssertEqual(res4?.item.name, "Mustard Oil")
+    }
+
+    func testMultiItemPartialMatchBillsValidItemAndExcludesUnlisted() {
+        let multiPayload = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 2 kg Potato and 1 kg Basmati Rice",
+          "items": [
+            {
+              "itemName": "Potato",
+              "quantity": 2.0,
+              "unit": "kg",
+              "unitPrice": 30.0
+            },
+            {
+              "itemName": "Basmati Rice",
+              "quantity": 1.0,
+              "unit": "kg",
+              "unitPrice": 110.0
+            }
+          ]
+        }
+        ```
+        """
+
+        let parsedMessage = LLMResponseParser.parse(
+            content: multiPayload,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato aur 1kg salt"
+        )
+
+        // Potato was valid and must be billed; hallucinated Basmati Rice for 'salt' must be excluded!
+        XCTAssertEqual(parsedMessage.status, .ready)
+        XCTAssertEqual(parsedMessage.parsedItems?.count, 1)
+        XCTAssertEqual(parsedMessage.parsedItems?.first?.itemName, "Potato")
+        XCTAssertEqual(parsedMessage.billSummary?.grandTotal, 60.0)
+        XCTAssertTrue(parsedMessage.text.contains("Potato"))
+        XCTAssertTrue(parsedMessage.text.contains("Note:"))
     }
 
     func testStructuredClarificationJSONParsingWithCandidateOptions() {

@@ -14,7 +14,9 @@ public struct LLMPromptBuilder {
         \(catalogSummary)
 
         CRITICAL OPERATING RULES:
-        1. Context Isolation: Process ONLY the customer's current request.
+        1. Context & Conversation Continuity:
+           - When the customer is continuing a conversation or answering a previous clarification (e.g. customer previously requested "1kg oil" and now answers "Sunflower Oil"), RETAIN the previously requested quantity and unit (1.0 L) and bill the selected item using FORMAT A (Status "ready")!
+           - Process independent new requests standalone.
         2. Ground Truth & Zero False Matches:
            - Match ONLY to items explicitly present in the STORE CATALOG. NEVER hallucinate, guess, or force-match items.
            - Accuracy is paramount: PREFER ASKING CLARIFICATION OR REPORTING NOT FOUND OVER GIVING A WRONG ANSWER.
@@ -22,9 +24,9 @@ public struct LLMPromptBuilder {
            - If a requested item (e.g. 'salt', 'namak', 'bread', 'soap') is NOT in the STORE CATALOG, DO NOT map it to any other item (e.g. NEVER map salt to rice or flour).
            - Immediately return FORMAT C with status "not_found" stating that the item is not available in the catalog.
         4. Ambiguity & Clarification (FORMAT B):
-           - When the customer asks for a generic category (e.g. 'oil', 'tel') and multiple matching items exist (e.g. Mustard Oil vs Sunflower Oil), or when you are not 100% sure which item they want, DO NOT force-map or guess!
-           - Return FORMAT B with status "needs_clarification" asking the customer to choose between the catalog options.
-           - Only bill directly with status "ready" when the item name is clear and unambiguous (e.g. "mustard oil", "sarson tel", "sunflower oil", "potato", "aloo", "basmati rice", "chawal", "cow milk", "doodh").
+           - If the customer specifies an exact catalog item like 'Sunflower Oil', 'Mustard Oil', 'Potato', 'Tomato', 'Basmati Rice', IMMEDIATELY bill it using FORMAT A (Status "ready").
+           - Return FORMAT B with status "needs_clarification" ONLY when the customer asks for an ambiguous, generic word without specifying the variety (e.g. customer said ONLY 'oil' or 'tel').
+           - NEVER return FORMAT B when the customer has already specified the exact variety (e.g. 'Sunflower Oil', 'sarson tel', 'Mustard Oil'). If the variety is named, bill it directly with Status "ready"!
         5. Multilingual & Units (Catalog Items ONLY):
            - Translate colloquial terms ONLY if the item exists in the store catalog (e.g. 'aloo'->Potato, 'sarson tel'->Mustard Oil, 'tamatar'->Tomato, 'doodh'->Cow Milk, 'anda'->Eggs, 'chawal'->Basmati Rice).
            - Automatically adopt catalog units (e.g. '1 L mustard oil' -> 1.0 L; '500g potato' -> 0.5 kg).

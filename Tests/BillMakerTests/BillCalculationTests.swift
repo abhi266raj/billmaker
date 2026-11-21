@@ -248,4 +248,40 @@ final class BillCalculationTests: XCTestCase {
         appState.removeItem(itemId: firstItem.id)
         XCTAssertNil(appState.currentBill)
     }
+
+    @MainActor
+    func testAppStateSelectClarificationOptionInstantlyResolvesItem() {
+        let mockEngine = MockAIAgentEngine()
+        let appState = AppState(agentEngine: mockEngine)
+        appState.catalog = [
+            Item(name: "Mustard Oil", unitType: .litre, pricePerUnit: 160.0),
+            Item(name: "Sunflower Oil", unitType: .litre, pricePerUnit: 145.0)
+        ]
+
+        // Simulate a pending clarification message
+        let pendingMsg = AgentMessage(
+            role: .agent,
+            text: "Which oil would you like? We have Mustard Oil and Sunflower Oil.",
+            thoughtProcess: "Asking clarification for ambiguous oil.",
+            status: .needsClarification,
+            pendingClarification: PendingClarification(
+                query: "oil",
+                quantity: 2.0,
+                unit: "L",
+                candidateNames: ["Mustard Oil", "Sunflower Oil"]
+            )
+        )
+        appState.messages.append(pendingMsg)
+
+        // User taps "Sunflower Oil" pill
+        appState.selectClarificationOption("Sunflower Oil")
+
+        XCTAssertNotNil(appState.currentBill)
+        XCTAssertEqual(appState.currentBill?.items.count, 1)
+        XCTAssertEqual(appState.currentBill?.items.first?.name, "Sunflower Oil")
+        XCTAssertEqual(appState.currentBill?.items.first?.quantity, 2.0)
+        XCTAssertEqual(appState.currentBill?.grandTotal, 290.0) // 2 * 145 = 290
+        XCTAssertEqual(appState.messages.last?.status, .ready)
+        XCTAssertTrue(appState.messages.last?.text.contains("Sunflower Oil") == true)
+    }
 }

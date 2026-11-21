@@ -105,8 +105,15 @@ public final class AppleFMServerManager: @unchecked Sendable {
             messages.append(["role": "user", "content": lastUserMsg.text])
             let assistantPayload = lastAgentMsg.rawJsonOutput ?? "```json\n{\"status\":\"needs_clarification\",\"message\":\"\(lastAgentMsg.text)\"}\n```"
             messages.append(["role": "assistant", "content": assistantPayload])
+
+            let pendingInfo = lastAgentMsg.pendingClarification
+            let qtyStr = pendingInfo != nil ? "\(pendingInfo!.quantity) \(pendingInfo!.unit)" : ""
+            let qStr = pendingInfo?.query ?? "item"
+            let promptContext = "[Context: Customer previously requested \(qtyStr) '\(qStr)'. Now customer chose: '\(userInput)'. Bill the selected item with quantity \(qtyStr.isEmpty ? "1.0" : qtyStr) using FORMAT A (Status 'ready').]\nCustomer: \(userInput)"
+            messages.append(["role": "user", "content": promptContext])
+        } else {
+            messages.append(["role": "user", "content": userInput])
         }
-        messages.append(["role": "user", "content": userInput])
 
         let body: [String: Any] = [
             "model": "system",
