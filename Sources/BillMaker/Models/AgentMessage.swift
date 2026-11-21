@@ -1,12 +1,12 @@
 import Foundation
 
-public enum AgentRole: String, Codable {
+public enum AgentRole: String, Codable, Sendable {
     case user
     case agent
     case system
 }
 
-public enum AgentResponseStatus: String, Codable {
+public enum AgentResponseStatus: String, Codable, Sendable {
     case ready               // All items resolved, bill computed
     case needsClarification  // Missing weight/quantity, multiple matches, or ambiguous item
     case notFound            // Item requested is not in the store catalog
@@ -58,7 +58,7 @@ public struct PendingClarification: Codable, Hashable, Sendable {
     }
 }
 
-public struct AgentMessage: Identifiable, Codable, Hashable {
+public struct AgentMessage: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
     public var role: AgentRole
     public var text: String

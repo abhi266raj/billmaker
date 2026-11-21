@@ -1,6 +1,6 @@
 import Foundation
 
-public enum UnitType: String, Codable, CaseIterable, Identifiable {
+public enum UnitType: String, Codable, CaseIterable, Identifiable, Sendable {
     case kg = "kg"
     case gram = "gram"
     case piece = "piece"
@@ -48,7 +48,7 @@ public enum UnitType: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-public struct Item: Identifiable, Codable, Hashable {
+public struct Item: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
     public var name: String
     public var unitType: UnitType

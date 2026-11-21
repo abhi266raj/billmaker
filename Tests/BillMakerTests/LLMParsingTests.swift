@@ -536,31 +536,6 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertNil(latestRecord.extractedJson)
     }
 
-    func testLiveDaemonIntegrationIfOnline() async throws {
-        guard AppleFMServerManager.shared.isDaemonOnline() else { return }
-        let catalog = [
-            Item(name: "Potato", unitType: .kg, pricePerUnit: 30.0),
-            Item(name: "Tomato", unitType: .kg, pricePerUnit: 40.0)
-        ]
-        let response = try await AppleFMServerManager.shared.queryDaemon(
-            userInput: "2kg aloo aur 1kg tamatar",
-            conversationHistory: [],
-            catalog: catalog,
-            currencySymbol: "₹"
-        )
-        let parsed = LLMResponseParser.parse(content: response, catalog: catalog, settings: .defaultSettings)
-        XCTAssertEqual(parsed.status, .ready)
-        XCTAssertNotNil(parsed.parsedItems)
-        XCTAssertGreaterThanOrEqual(parsed.parsedItems?.count ?? 0, 1)
-        XCTAssertNotNil(parsed.billSummary)
-        let bill = BillCalculator.mergeIntoBill(
-            existingBill: nil,
-            newParsedItems: parsed.parsedItems ?? [],
-            catalog: catalog
-        )
-        XCTAssertFalse(bill.items.isEmpty)
-    }
-
     func testUnifiedObjectItemsFormatWithVerifiedObjectDictionary() {
         let json = """
         ```json
@@ -985,5 +960,265 @@ final class LLMParsingTests: XCTestCase {
         XCTAssertNotNil(parsed.billSummary)
         XCTAssertTrue(parsed.text.contains("Added 5 kg Atta to the bill"))
         XCTAssertTrue(parsed.text.contains("Which oil would you like"))
+    }
+
+    func testDiagnosticsCapturesFatalSyntaxCorruption() {
+        ParsingDiagnosticsLogger.shared.clearAllLogs()
+
+        let corruptJson = """
+        ```json
+        {
+          "status": "ready",
+          "items": [{ "itemName": "Potato", "quantity": %$$# INVALID_CORRUPT_TOKEN
+        }
+        ```
+        """
+
+        let result = LLMResponseParser.parse(
+            content: corruptJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg aloo syntax error test"
+        )
+
+        XCTAssertEqual(result.status, .error)
+
+        let records = ParsingDiagnosticsLogger.shared.recentRecords
+        guard let record = records.first else {
+            XCTFail("Diagnostics record not logged for syntax corruption")
+            return
+        }
+
+        XCTAssertEqual(record.outcome, .decodingError)
+        XCTAssertTrue(record.isFailure)
+        XCTAssertTrue(record.rootCauseAnalysis.contains("JSON syntax corrupted") || record.rootCauseAnalysis.contains("not valid JSON"))
+        XCTAssertEqual(record.userInput, "2kg aloo syntax error test")
+        XCTAssertNotNil(record.extractedJson)
+    }
+
+    func testDiagnosticsAutoRescuesTrailingCommaSyntaxCorruption() {
+        ParsingDiagnosticsLogger.shared.clearAllLogs()
+
+        let trailingCommaJson = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 2 kg Potato.",
+          "items": [
+            {
+              "itemName": "Potato",
+              "quantity": 2.0,
+              "unit": "kg",
+              "unitPrice": 30.0,
+            },
+          ],
+        }
+        ```
+        """
+
+        let result = LLMResponseParser.parse(
+            content: trailingCommaJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato"
+        )
+
+        XCTAssertEqual(result.status, .ready)
+        XCTAssertEqual(result.parsedItems?.count, 1)
+        XCTAssertEqual(result.parsedItems?.first?.itemName, "Potato")
+
+        let records = ParsingDiagnosticsLogger.shared.recentRecords
+        guard let record = records.first else {
+            XCTFail("Diagnostics record not logged for auto-rescued syntax")
+            return
+        }
+
+        XCTAssertEqual(record.outcome, .autoRescued)
+        XCTAssertFalse(record.isFailure)
+        XCTAssertTrue(record.rootCauseAnalysis.contains("Auto-repaired corrupted JSON syntax"))
+    }
+
+    func testDiagnosticsAutoRescuesTruncatedBracesSyntaxCorruption() {
+        ParsingDiagnosticsLogger.shared.clearAllLogs()
+
+        // Truncated code fence without closing braces or closing backticks
+        let truncatedJson = """
+        ```json
+        {
+          "status": "ready",
+          "message": "Added 2 kg Potato.",
+          "items": [
+            {
+              "itemName": "Potato",
+              "quantity": 2.0,
+              "unit": "kg",
+              "unitPrice": 30.0
+        """
+
+        let result = LLMResponseParser.parse(
+            content: truncatedJson,
+            catalog: sampleCatalog,
+            settings: .defaultSettings,
+            userInput: "2kg potato"
+        )
+
+        XCTAssertEqual(result.status, .ready)
+        XCTAssertEqual(result.parsedItems?.count, 1)
+        XCTAssertEqual(result.parsedItems?.first?.itemName, "Potato")
+
+        let records = ParsingDiagnosticsLogger.shared.recentRecords
+        guard let record = records.first else {
+            XCTFail("Diagnostics record not logged for auto-rescued truncated syntax")
+            return
+        }
+
+        XCTAssertEqual(record.outcome, .autoRescued)
+        XCTAssertFalse(record.isFailure)
+        XCTAssertTrue(record.rootCauseAnalysis.contains("Auto-repaired corrupted JSON syntax"))
+    }
+
+    func testBillingSpecAndClarificationSpecDerivation() {
+        let input = BillingInput(request: "2kg potato", catalogSummary: "- Potato: ₹30/kg", currencySymbol: "₹")
+        let spec = BillingSpec(input: input, instructions: "Billing instructions")
+        XCTAssertEqual(BillingSpec.role, "Fast retail grocery store billing assistant")
+        XCTAssertEqual(spec.input.request, "2kg potato")
+
+        let clarInput = ClarificationInput(
+            userInput: "Sunflower Oil",
+            pendingQuery: "oil",
+            pendingQuantity: 1.0,
+            pendingUnit: "L",
+            candidateOptions: ["Mustard Oil", "Sunflower Oil"],
+            catalogSummary: "- Sunflower Oil: ₹140/L"
+        )
+        let clarSpec = ClarificationSpec(input: clarInput, instructions: "Verify clarification")
+        XCTAssertEqual(ClarificationSpec.role, "Guardian verifier for ambiguous grocery item clarifications")
+        XCTAssertEqual(clarSpec.input.candidateOptions.count, 2)
+    }
+
+    func testMasterBillingOrchestratorClarificationVerificationAndStateTransitions() async throws {
+        AgentAtomSession.testResponder = { input, _ in
+            if input.contains("oil") {
+                return """
+                ```json
+                {
+                  "thought": "Ambiguous oil requested.",
+                  "message": "Which oil would you like?",
+                  "items": {
+                    "need_clarification": {
+                      "oil": {
+                        "quantity": 1,
+                        "unit": "L",
+                        "options": ["Mustard Oil", "Sunflower Oil"]
+                      }
+                    }
+                  }
+                }
+                ```
+                """
+            }
+            return nil
+        }
+        defer { AgentAtomSession.testResponder = nil }
+
+        let orchestrator = MasterBillingOrchestrator.shared
+        orchestrator.resetState()
+
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        // 1. Initial State with Ambiguous query "1L oil" -> transitions to .clarification
+        let ambiguousMsg = try await orchestrator.process(
+            userInput: "1L oil",
+            conversationHistory: [],
+            catalog: fullCatalog,
+            settings: .defaultSettings
+        )
+        XCTAssertEqual(ambiguousMsg.status, .needsClarification)
+        if case .clarification(let pending) = orchestrator.state {
+            XCTAssertTrue(pending.candidateNames.contains("Mustard Oil"))
+            XCTAssertTrue(pending.candidateNames.contains("Sunflower Oil"))
+        } else {
+            XCTFail("Orchestrator should be in .clarification state")
+        }
+
+        // 2. Clarification State with valid clarification reply "Sunflower Oil" -> verifies real clarification and transitions back to .initial
+        let history = [
+            AgentMessage(role: .user, text: "1L oil"),
+            ambiguousMsg
+        ]
+        let resolvedMsg = try await orchestrator.process(
+            userInput: "Sunflower Oil",
+            conversationHistory: history,
+            catalog: fullCatalog,
+            settings: .defaultSettings
+        )
+        XCTAssertEqual(resolvedMsg.status, .ready)
+        XCTAssertEqual(resolvedMsg.parsedItems?.count, 1)
+        XCTAssertEqual(resolvedMsg.parsedItems?.first?.itemName, "Sunflower Oil")
+        XCTAssertEqual(orchestrator.state, .initial)
+    }
+
+    func testMasterBillingOrchestratorNonClarificationFallsBackToInitialState() async throws {
+        AgentAtomSession.testResponder = { input, _ in
+            if input.contains("potato") {
+                return """
+                ```json
+                {
+                  "thought": "Added 2kg potato.",
+                  "message": "Added 2kg Potato to the bill.",
+                  "items": {
+                    "verified": {
+                      "Potato": {
+                        "quantity": 2,
+                        "unit": "kg",
+                        "unit_price": 30
+                      }
+                    }
+                  }
+                }
+                ```
+                """
+            }
+            return nil
+        }
+        defer { AgentAtomSession.testResponder = nil }
+
+        let orchestrator = MasterBillingOrchestrator.shared
+        orchestrator.resetState()
+
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        // Set orchestrator into clarification state for "oil"
+        let pending = PendingClarification(
+            query: "oil",
+            quantity: 1.0,
+            unit: "L",
+            candidateNames: ["Mustard Oil", "Sunflower Oil"]
+        )
+        let clarifyMsg = AgentMessage(
+            role: .agent,
+            text: "Which oil would you like?",
+            status: .needsClarification,
+            pendingClarification: pending
+        )
+
+        // Customer ignores clarification and orders an entirely different item "2kg potato"
+        let nonClarifyHistory = [
+            AgentMessage(role: .user, text: "1L oil"),
+            clarifyMsg
+        ]
+        let newOrderMsg = try await orchestrator.process(
+            userInput: "2kg potato",
+            conversationHistory: nonClarifyHistory,
+            catalog: fullCatalog,
+            settings: .defaultSettings
+        )
+
+        // Master orchestrator guardian detects it is NOT a real clarification,
+        // falls back to initial state, and bills the new item!
+        XCTAssertEqual(newOrderMsg.status, AgentResponseStatus.ready)
+        XCTAssertEqual(newOrderMsg.parsedItems?.count, 1)
+        XCTAssertEqual(newOrderMsg.parsedItems?.first?.itemName, "Potato")
+        XCTAssertEqual(orchestrator.state, .initial)
     }
 }

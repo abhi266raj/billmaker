@@ -1,6 +1,6 @@
 import Foundation
 
-public struct BilledItem: Identifiable, Codable, Hashable {
+public struct BilledItem: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
     public var itemId: UUID?
     public var name: String
@@ -43,7 +43,7 @@ public struct BilledItem: Identifiable, Codable, Hashable {
     }
 }
 
-public struct BillSummary: Identifiable, Codable, Hashable {
+public struct BillSummary: Identifiable, Codable, Hashable, Sendable {
     public var id: UUID
     public var items: [BilledItem]
     public var subtotal: Double

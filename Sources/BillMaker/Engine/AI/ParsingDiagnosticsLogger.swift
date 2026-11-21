@@ -29,7 +29,7 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
         extractedJson: String? = nil,
         outcome: ParsingOutcome,
         rootCauseAnalysis: String,
-        executionMode: String = "daemon",
+        executionMode: String = "AgentAtom",
         itemsParsedCount: Int = 0
     ) {
         self.id = id
@@ -82,7 +82,7 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
         extractedJson: String? = nil,
         outcome: ParsingOutcome,
         rootCauseAnalysis: String,
-        executionMode: String = "daemon",
+        executionMode: String = "AgentAtom",
         itemsParsedCount: Int = 0
     ) {
         let record = ParsingDiagnosticsRecord(

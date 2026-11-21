@@ -34,13 +34,15 @@ public struct LLMResponseParser {
         var extractedJson: String? = nil
         var parsedPayload: AgentJsonPayload? = nil
         var lastDecodingError: String? = nil
+        var wasSyntaxAutoRepaired = false
 
         let jsonCandidates = extractJsonCandidates(from: cleanContent)
         for candidate in jsonCandidates {
-            let (payload, errorDesc) = decodePayload(from: candidate)
+            let (payload, errorDesc, wasRepaired) = decodePayload(from: candidate)
             if let p = payload {
                 extractedJson = candidate
                 parsedPayload = p
+                wasSyntaxAutoRepaired = wasRepaired
                 break
             } else if let err = errorDesc {
                 lastDecodingError = err
@@ -57,7 +59,7 @@ public struct LLMResponseParser {
                 extractedJson: extractedJson,
                 outcome: lastDecodingError != nil ? .decodingError : .missingJson,
                 rootCauseAnalysis: rootCause,
-                executionMode: settings.executionMode.rawValue,
+                executionMode: "AgentAtom",
                 itemsParsedCount: 0
             )
 
@@ -107,7 +109,7 @@ public struct LLMResponseParser {
                 extractedJson: extractedJson,
                 outcome: .clarification,
                 rootCauseAnalysis: "Item not found in catalog: \"\(msg)\"",
-                executionMode: settings.executionMode.rawValue,
+                executionMode: "AgentAtom",
                 itemsParsedCount: 0
             )
 
@@ -174,7 +176,7 @@ public struct LLMResponseParser {
                     extractedJson: extractedJson,
                     outcome: .autoRescued,
                     rootCauseAnalysis: "Auto-resolved clarification because user specified exact catalog item '\(matched.name)'.",
-                    executionMode: settings.executionMode.rawValue,
+                    executionMode: "AgentAtom",
                     itemsParsedCount: 1
                 )
 
@@ -227,7 +229,7 @@ public struct LLMResponseParser {
                 extractedJson: extractedJson,
                 outcome: .clarification,
                 rootCauseAnalysis: "Clarification requested: \"\(payload.message)\" (Options: \(candidateNames.joined(separator: ", ")))",
-                executionMode: settings.executionMode.rawValue,
+                executionMode: "AgentAtom",
                 itemsParsedCount: 0
             )
 
@@ -321,7 +323,7 @@ public struct LLMResponseParser {
                     extractedJson: extractedJson,
                     outcome: .clarification,
                     rootCauseAnalysis: "Generic oil query converted to clarification: \(promptMsg)",
-                    executionMode: settings.executionMode.rawValue,
+                    executionMode: "AgentAtom",
                     itemsParsedCount: verifiedItems?.count ?? 0
                 )
 
@@ -367,7 +369,7 @@ public struct LLMResponseParser {
                 extractedJson: extractedJson,
                 outcome: .decodingError,
                 rootCauseAnalysis: rootCause,
-                executionMode: settings.executionMode.rawValue,
+                executionMode: "AgentAtom",
                 itemsParsedCount: 0
             )
 
@@ -411,7 +413,7 @@ public struct LLMResponseParser {
                     extractedJson: extractedJson,
                     outcome: .clarification,
                     rootCauseAnalysis: rca,
-                    executionMode: settings.executionMode.rawValue,
+                    executionMode: "AgentAtom",
                     itemsParsedCount: 0
                 )
 
@@ -463,12 +465,20 @@ public struct LLMResponseParser {
 
         let status: AgentResponseStatus = (payload.status == "needs_clarification") ? .needsClarification : .ready
         let hasAutoCorrection = items.contains { $0.wasAutoCorrected == true }
+        if wasSyntaxAutoRepaired {
+            wasAutoRescued = true
+        }
 
         // Log successful parsing or auto-rescue
         let outcome: ParsingOutcome = wasAutoRescued ? .autoRescued : .success
-        let analysis = wasAutoRescued
-            ? "Model omitted items array; parser auto-rescued '\(items.first?.itemName ?? "")' from text confirmation."
-            : "Successfully parsed \(items.count) item(s): \(items.map(\.itemName).joined(separator: ", "))."
+        let analysis: String
+        if wasSyntaxAutoRepaired {
+            analysis = "Auto-repaired corrupted JSON syntax and successfully parsed \(items.count) item(s): \(items.map(\.itemName).joined(separator: ", "))."
+        } else if wasAutoRescued {
+            analysis = "Model omitted items array; parser auto-rescued '\(items.first?.itemName ?? "")' from text confirmation."
+        } else {
+            analysis = "Successfully parsed \(items.count) item(s): \(items.map(\.itemName).joined(separator: ", "))."
+        }
 
         ParsingDiagnosticsLogger.shared.log(
             userInput: userInput,
@@ -476,7 +486,7 @@ public struct LLMResponseParser {
             extractedJson: extractedJson,
             outcome: outcome,
             rootCauseAnalysis: analysis,
-            executionMode: settings.executionMode.rawValue,
+            executionMode: "AgentAtom",
             itemsParsedCount: items.count
         )
 
@@ -534,10 +544,52 @@ public struct LLMResponseParser {
             }
         }
 
+        // Pattern 4: Unclosed code fence (e.g. truncated ```json { ... without closing ```)
+        if candidates.isEmpty, let fenceRange = text.range(of: "```") {
+            let afterFence = text[fenceRange.upperBound...]
+            var candidateStr = String(afterFence).trimmingCharacters(in: .whitespacesAndNewlines)
+            if candidateStr.lowercased().hasPrefix("json") {
+                candidateStr = String(candidateStr.dropFirst(4)).trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            if !candidateStr.isEmpty && (candidateStr.contains("{") || candidateStr.contains("[")) {
+                candidates.append(candidateStr)
+            }
+        }
+
+        // Pattern 5: Unclosed opening brace { without matching closing }
+        if candidates.isEmpty, let openBrace = text.firstIndex(of: "{") {
+            let candidate = String(text[openBrace...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !candidate.isEmpty && !candidates.contains(candidate) {
+                candidates.append(candidate)
+            }
+        }
+
         return candidates
     }
 
-    private static func decodePayload(from jsonStr: String) -> (AgentJsonPayload?, String?) {
+    private static func decodePayload(from jsonStr: String) -> (AgentJsonPayload?, String?, Bool) {
+        let trimmed = jsonStr.trimmingCharacters(in: .whitespacesAndNewlines)
+        let repairedStr = repairCorruptedJsonSyntax(trimmed)
+        let wasModified = (repairedStr != trimmed)
+
+        // Try decoding repaired structure first if syntax was modified
+        if wasModified {
+            let (repairedPayload, _) = attemptDecode(from: repairedStr)
+            if let repairedPayload = repairedPayload {
+                return (repairedPayload, nil, true)
+            }
+        }
+
+        // Direct decode of original structure
+        let (directPayload, directError) = attemptDecode(from: trimmed)
+        if let directPayload = directPayload {
+            return (directPayload, nil, false)
+        }
+
+        return (nil, directError, false)
+    }
+
+    private static func attemptDecode(from jsonStr: String) -> (AgentJsonPayload?, String?) {
         guard let data = jsonStr.data(using: .utf8) else {
             return (nil, "Failed to encode JSON candidate as UTF-8 data.")
         }
@@ -678,6 +730,68 @@ public struct LLMResponseParser {
         return (nil, lastError)
     }
 
+    /// Auto-repairs common JSON syntax corruptions such as trailing commas, Python literals, and truncated braces.
+    private static func repairCorruptedJsonSyntax(_ text: String) -> String {
+        var repaired = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 1. Remove trailing commas before closing braces or brackets: e.g. , } -> } and , ] -> ]
+        let trailingCommaPattern = #",\s*([\]\}])"#
+        if let regex = try? NSRegularExpression(pattern: trailingCommaPattern, options: []) {
+            let range = NSRange(location: 0, length: repaired.utf16.count)
+            repaired = regex.stringByReplacingMatches(in: repaired, options: [], range: range, withTemplate: "$1")
+        }
+
+        // 2. Python boolean and null literal conversions
+        let pythonReplacements = [
+            (#":\s*True\b"#, ": true"),
+            (#":\s*False\b"#, ": false"),
+            (#":\s*None\b"#, ": null")
+        ]
+        for (pattern, template) in pythonReplacements {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+                let range = NSRange(location: 0, length: repaired.utf16.count)
+                repaired = regex.stringByReplacingMatches(in: repaired, options: [], range: range, withTemplate: template)
+            }
+        }
+
+        // 3. Balance unclosed braces and brackets if corrupted by truncation using LIFO stack
+        var bracketStack: [Character] = []
+        var inString = false
+        var isEscaped = false
+
+        for char in repaired {
+            if char == "\\" && !isEscaped {
+                isEscaped = true
+                continue
+            }
+            if char == "\"" && !isEscaped {
+                inString.toggle()
+            } else if !inString {
+                if char == "{" {
+                    bracketStack.append("}")
+                } else if char == "[" {
+                    bracketStack.append("]")
+                } else if char == "}" || char == "]" {
+                    if let last = bracketStack.last, last == char {
+                        bracketStack.removeLast()
+                    }
+                }
+            }
+            isEscaped = false
+        }
+
+        // Close unclosed string if truncated inside string
+        if inString {
+            repaired.append("\"")
+        }
+        // Close unclosed brackets and braces in proper reverse LIFO order
+        while let closing = bracketStack.popLast() {
+            repaired.append(closing)
+        }
+
+        return repaired
+    }
+
     private static func formatDecodeError(_ error: Error) -> String {
         if let decError = error as? DecodingError {
             switch decError {
@@ -688,7 +802,10 @@ public struct LLMResponseParser {
             case .valueNotFound(let type, let ctx):
                 return "Missing non-null value for '\(type)' at '\(ctx.codingPath.map(\.stringValue).joined(separator: "."))'."
             case .dataCorrupted(let ctx):
-                return "Syntax corrupted at '\(ctx.codingPath.map(\.stringValue).joined(separator: "."))': \(ctx.debugDescription)"
+                let path = ctx.codingPath.map(\.stringValue).joined(separator: ".")
+                let pathPrefix = path.isEmpty ? "" : " at '\(path)'"
+                let underlying = ctx.underlyingError != nil ? " (\(ctx.underlyingError!.localizedDescription))" : ""
+                return "JSON syntax corrupted\(pathPrefix): \(ctx.debugDescription)\(underlying)"
             @unknown default:
                 return decError.localizedDescription
             }

@@ -22,7 +22,7 @@ public final class AppState: ObservableObject {
     public init(
         catalogStorage: CatalogStorage = CatalogStorageService(),
         settingsStorage: SettingsStorage = SettingsStorageService(),
-        agentEngine: AgentEngine = AppleFMAgentEngine()
+        agentEngine: AgentEngine = AgentAtomBillingEngine()
     ) {
         self.catalogStorage = catalogStorage
         self.settingsStorage = settingsStorage
@@ -43,7 +43,7 @@ public final class AppState: ObservableObject {
 
     /// Prewarms the continuous session with typing or voice prefixes as they arrive.
     public func prewarmPrefix(_ prefix: String) {
-        AppleFMBackgroundServer.shared.prewarmPrefix(prefix)
+        // Continuous session prewarming
     }
 
     private func setupWelcomeMessage() {

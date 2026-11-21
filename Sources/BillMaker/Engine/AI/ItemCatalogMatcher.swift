@@ -205,15 +205,43 @@ public struct ItemCatalogMatcher {
             }
         }
 
-        // 4. Candidate name match or alias match:
+        // 4. Exact candidate name or candidate contains clean / clean contains candidate:
+        // Priority 4a: Exact name match
+        for candidateName in pending.candidateNames {
+            if clean == candidateName.lowercased(),
+               let catItem = catalog.first(where: { $0.name == candidateName }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // Priority 4b: Clean contains candidate name (e.g. "I want Sunflower Oil")
+        for candidateName in pending.candidateNames {
+            if clean.localizedCaseInsensitiveContains(candidateName),
+               let catItem = catalog.first(where: { $0.name == candidateName }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // Priority 4c: Candidate name contains clean (e.g. user typed "sunflower" for "Sunflower Oil")
+        for candidateName in pending.candidateNames {
+            if candidateName.localizedCaseInsensitiveContains(clean),
+               let catItem = catalog.first(where: { $0.name == candidateName }) {
+                return (catItem, pending.quantity, pending.unit)
+            }
+        }
+
+        // Priority 4d: Specific alias match (excluding the generic ambiguous query word like "oil" / "tel")
+        let cleanQuery = pending.query.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         for candidateName in pending.candidateNames {
             if let catItem = catalog.first(where: { $0.name == candidateName }) {
                 let candidateAliases = aliases(for: candidateName)
-                if clean.localizedCaseInsensitiveContains(candidateName) || candidateName.localizedCaseInsensitiveContains(clean) {
-                    return (catItem, pending.quantity, pending.unit)
-                }
-                for alias in candidateAliases where alias.count >= 3 {
-                    if clean.contains(alias) || alias.contains(clean) {
+                for alias in candidateAliases {
+                    let aliasLower = alias.lowercased()
+                    // Disqualify alias if it is identical to or part of the ambiguous query (e.g. "oil", "tel")
+                    if !cleanQuery.isEmpty && (aliasLower == cleanQuery || cleanQuery.contains(aliasLower) || aliasLower == "oil" || aliasLower == "tel") {
+                        continue
+                    }
+                    if aliasLower.count >= 3 && (clean == aliasLower || clean.localizedCaseInsensitiveContains(aliasLower)) {
                         return (catItem, pending.quantity, pending.unit)
                     }
                 }

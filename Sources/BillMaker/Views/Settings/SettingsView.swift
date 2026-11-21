@@ -10,39 +10,22 @@ public struct SettingsView: View {
 
     public var body: some View {
         Form {
-            Section(header: Text("Apple Foundation Models Engine")) {
-                Picker("Execution Mode", selection: $appState.settings.executionMode) {
-                    ForEach(AppleFMExecutionMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                .pickerStyle(.radioGroup)
-                .onChange(of: appState.settings.executionMode) { _ in
-                    appState.saveSettings()
-                }
-
-                Text(appState.settings.executionMode.shortDescription)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 4)
-
-                HStack {
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 8, height: 8)
-                        Text(appState.settings.executionMode == .backgroundDaemon
-                             ? "Daemon Active: 127.0.0.1:1976 (Apple Neural Engine Pinned)"
-                             : "In-App Active: Port 9876 (Continuous Session Prewarmed)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+            Section(header: Text("AI Engine (AgentAtom)")) {
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                    Text("Apple Intelligence Engine (Unified AgentAtom)")
+                        .font(.body)
                     Spacer()
-                    Button("Re-warm Engine") {
+                    Button("Prewarm Engine") {
                         appState.prewarmEngine()
                     }
                     .font(.caption)
                 }
+                Text("Powered natively on-device by Apple Foundation Models via AgentAtom specifications. Zero background daemon ports required.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Section(header: Text("Currency & Billing Preferences")) {
