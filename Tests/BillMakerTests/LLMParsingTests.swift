@@ -1289,4 +1289,153 @@ final class LLMParsingTests: XCTestCase {
         let maggiExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: maggi, from: "500g paneer, 3 eggs, aur 1 pkt maggi")
         XCTAssertEqual(maggiExtract.quantity, 1.0)
     }
+
+    func testEndToEndVolumeDivisibilityAndUnitConversion() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        guard let mustardOil = fullCatalog.first(where: { $0.name == "Mustard Oil" }) else {
+            XCTFail("Mustard oil missing from default catalog")
+            return
+        }
+
+        // Test volume extraction: 500ml -> 0.5 L
+        let extract = ItemCatalogMatcher.extractQuantityAndUnit(for: mustardOil, from: "500ml sarso tel")
+        XCTAssertEqual(extract.quantity, 0.5)
+        XCTAssertEqual(extract.unit, "L")
+
+        // Parse volume query directly
+        let json = """
+        ```json
+        {
+          "thought": "Customer requested 500ml mustard oil.",
+          "message": "Added 0.5 L Mustard Oil.",
+          "items": {
+            "verified": {
+              "Mustard Oil": {
+                "quantity": 0.5,
+                "unit": "L",
+                "unitPrice": 160.0
+              }
+            }
+          }
+        }
+        ```
+        """
+        let parsed = LLMResponseParser.parse(
+            content: json,
+            catalog: fullCatalog,
+            settings: .defaultSettings,
+            userInput: "500ml sarso tel"
+        )
+        XCTAssertEqual(parsed.status, .ready)
+        XCTAssertEqual(parsed.parsedItems?.count, 1)
+        XCTAssertEqual(parsed.parsedItems?.first?.quantity, 0.5)
+        XCTAssertEqual(parsed.parsedItems?.first?.unit, "L")
+        XCTAssertEqual(parsed.billSummary?.grandTotal, 80.0) // 0.5 * 160 = 80
+    }
+
+    func testEndToEndColloquialMultiItemOrder() async throws {
+        let orchestrator = MasterBillingOrchestrator.shared
+        orchestrator.resetState()
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        AgentAtomSession.testResponder = { input, _ in
+            if input.contains("tamatar") || input.contains("aalu") || input.contains("egg") {
+                return """
+                ```json
+                {
+                  "thought": "Parsed multi-item colloquial order.",
+                  "message": "Added items to bill.",
+                  "items": {
+                    "verified": {
+                      "Potato": { "quantity": 1.5, "unit": "kg", "unitPrice": 30.0 },
+                      "Tomato": { "quantity": 0.5, "unit": "kg", "unitPrice": 40.0 },
+                      "Eggs": { "quantity": 6.0, "unit": "pc", "unitPrice": 7.0 }
+                    }
+                  }
+                }
+                ```
+                """
+            }
+            return nil
+        }
+        defer { AgentAtomSession.testResponder = nil }
+
+        let result = try await orchestrator.process(
+            userInput: "dedh kilo aalu, aadha kilo tamatar, aur 6 eggs",
+            conversationHistory: [],
+            catalog: fullCatalog,
+            settings: .defaultSettings
+        )
+
+        XCTAssertEqual(result.status, .ready)
+        XCTAssertEqual(result.parsedItems?.count, 3)
+        XCTAssertEqual(result.billSummary?.items.count, 3)
+        // Subtotal: (1.5 * 30 = 45) + (0.5 * 40 = 20) + (6 * 7 = 42) = 107.0
+        XCTAssertEqual(result.billSummary?.subtotal, 107.0)
+    }
+
+    func testEndToEndClarificationCancellationOrTopicChange() async throws {
+        let orchestrator = MasterBillingOrchestrator.shared
+        orchestrator.resetState()
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+
+        let pending = PendingClarification(
+            query: "oil",
+            quantity: 1.0,
+            unit: "L",
+            candidateNames: ["Mustard Oil", "Sunflower Oil"]
+        )
+        let clarifyMsg = AgentMessage(
+            role: .agent,
+            text: "Which oil would you like?",
+            status: .needsClarification,
+            pendingClarification: pending
+        )
+
+        // Customer cancels or declines the clarification
+        let history = [
+            AgentMessage(role: .user, text: "1L oil"),
+            clarifyMsg
+        ]
+
+        AgentAtomSession.testResponder = { _, _ in
+            return """
+            ```json
+            {
+              "thought": "Customer cancelled.",
+              "message": "Order cancelled.",
+              "items": { "verified": {}, "rejected": {}, "needClarification": {} }
+            }
+            ```
+            """
+        }
+        defer { AgentAtomSession.testResponder = nil }
+
+        let response = try await orchestrator.process(
+            userInput: "cancel",
+            conversationHistory: history,
+            catalog: fullCatalog,
+            settings: .defaultSettings
+        )
+
+        // Guardian resets state back to initial
+        XCTAssertEqual(orchestrator.state, .initial)
+    }
+
+    func testEndToEndDiscreteItemPacketsAndPieces() {
+        let fullCatalog = CatalogStorageService().loadDefaultCatalog()
+        guard let maggi = fullCatalog.first(where: { $0.name.contains("Maggi") }),
+              let banana = fullCatalog.first(where: { $0.name == "Banana" }) else {
+            XCTFail("Missing catalog items")
+            return
+        }
+
+        let maggiExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: maggi, from: "2 pkts maggi aur 1 dozen kela")
+        XCTAssertEqual(maggiExtract.quantity, 2.0)
+        XCTAssertEqual(maggiExtract.unit, "pkt")
+
+        let bananaExtract = ItemCatalogMatcher.extractQuantityAndUnit(for: banana, from: "2 pkts maggi aur 1 dozen kela")
+        XCTAssertEqual(bananaExtract.quantity, 1.0)
+        XCTAssertEqual(bananaExtract.unit, "dozen")
+    }
 }

@@ -816,40 +816,6 @@ public struct LLMResponseParser {
         return error.localizedDescription
     }
 
-    /// Resilient fallback item extractor for edge cases where the LLM produces unstructured or natural language confirmations.
-    private static func extractFallbackItems(from text: String, catalog: [Item]) -> [AgentParsedItem] {
-        var items: [AgentParsedItem] = []
-        let lower = text.lowercased()
-
-        for item in catalog {
-            let itemNameLower = item.name.lowercased()
-            if lower.contains(itemNameLower) {
-                let pattern = #"([0-9]+(?:\.[0-9]+)?)\s*(?:kg|kilo|gram|g|l|litre|liter|ml|pc|piece|dozen|pkt|packet)?\s*"# + NSRegularExpression.escapedPattern(for: itemNameLower)
-                var qty: Double = 1.0
-                let unitStr = item.unitType.shortLabel
-
-                if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-                   let match = regex.firstMatch(in: lower, options: [], range: NSRange(location: 0, length: lower.utf16.count)) {
-                    if let numRange = Range(match.range(at: 1), in: lower),
-                       let num = Double(lower[numRange]) {
-                        qty = num
-                    }
-                }
-
-                items.append(
-                    AgentParsedItem(
-                        itemId: item.id.uuidString,
-                        itemName: item.name,
-                        quantity: qty,
-                        unit: unitStr,
-                        unitPrice: item.pricePerUnit
-                    )
-                )
-            }
-        }
-
-        return items
-    }
 
     /// Reconciles LLM items payload with ground-truth catalog rules and unit divisibility:
     /// - Weight (kg, g) and volume (litre, ml) are divisible into fractions (e.g. 500g paneer = 0.5 kg).

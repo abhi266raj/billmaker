@@ -18,7 +18,6 @@
 		500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F11597044C462B6F9622EB6 /* MainView.swift */; };
 		511712EA5808C5FE59D36147 /* ClarificationOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58F4CF0291672D9E81E8CA8 /* ClarificationOutput.swift */; };
 		554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */; };
-		5965B18A5BFA7A6B6F8FBB6C /* ThoughtLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */; };
 		5E5C83C032C3D52067631F91 /* LLMParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */; };
 		64407F793284238483465BA8 /* Bill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D97D8C44B1BF3998FDFB75 /* Bill.swift */; };
 		6B8A772A9D922E0C8A98739C /* ChatMessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */; };
@@ -89,7 +88,6 @@
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
 		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
-		B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThoughtLogger.swift; sourceTree = "<group>"; };
 		B9C3A6B4BC1744431D20F3AC /* BillingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingSpec.swift; sourceTree = "<group>"; };
 		BCFC840560DF3FCD27200680 /* BillingInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingInput.swift; sourceTree = "<group>"; };
 		C58F4CF0291672D9E81E8CA8 /* ClarificationOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationOutput.swift; sourceTree = "<group>"; };
@@ -321,7 +319,6 @@
 			children = (
 				A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */,
 				8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */,
-				B3339C290C15F64F2D8B409A /* ThoughtLogger.swift */,
 			);
 			path = Harness;
 			sourceTree = "<group>";
@@ -471,7 +468,6 @@
 				C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */,
 				7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */,
 				FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */,
-				5965B18A5BFA7A6B6F8FBB6C /* ThoughtLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

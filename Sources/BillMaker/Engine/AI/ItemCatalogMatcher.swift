@@ -40,7 +40,7 @@ public struct ItemCatalogMatcher {
             list.append(contentsOf: ["cottage cheese", "paneer"])
         }
         if lower.contains("mustard oil") || lower.contains("mustard") {
-            list.append(contentsOf: ["sarson", "sarson tel", "sarson ka tel", "mustard oil", "mustard", "rai"])
+            list.append(contentsOf: ["sarson", "sarso", "sarson tel", "sarso tel", "sarson ka tel", "sarso ka tel", "mustard oil", "mustard", "rai"])
         }
         if lower.contains("sunflower oil") || lower.contains("sunflower") {
             list.append(contentsOf: ["surajmukhi", "soorajmukhi", "surajmukhi tel", "sunflower oil", "sunflower"])
@@ -123,6 +123,7 @@ public struct ItemCatalogMatcher {
 
         let hasSpecificVariety = lower.contains("mustard") ||
             lower.contains("sarson") ||
+            lower.contains("sarso") ||
             lower.contains("sunflower") ||
             lower.contains("surajmukhi") ||
             lower.contains("soorajmukhi") ||
