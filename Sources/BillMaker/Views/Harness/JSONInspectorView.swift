@@ -25,11 +25,11 @@ public struct JSONInspectorView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 HStack {
-                    Text("Agent Structured JSON Output")
+                    Text("Agent Output & Debug Description")
                         .font(.headline)
                     Spacer()
                     Button(action: copyToClipboard) {
-                        Label("Copy JSON", systemImage: "doc.on.doc")
+                        Label("Copy Debug Info", systemImage: "doc.on.doc")
                     }
                 }
                 .padding()

@@ -51,7 +51,21 @@ public struct ParsingDiagnosticsRecord: Identifiable, Codable {
     }
 }
 
-/// Persistent and in-memory logger for tracking and analyzing AI model output parsing failures.
+extension ParsingDiagnosticsRecord: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        """
+        [ParsingDiagnosticsRecord]
+        ID: \(id.uuidString.prefix(8))
+        Time: \(timestamp.formatted())
+        Outcome: \(outcome.rawValue)
+        Input: "\(userInput)"
+        Items: \(itemsParsedCount)
+        Analysis: \(rootCauseAnalysis)
+        """
+    }
+}
+
+/// Persistent and in-memory logger for tracking and analyzing AI model output parsing diagnostics.
 public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendable {
     public static let shared = ParsingDiagnosticsLogger()
 
@@ -116,7 +130,7 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
         if Thread.isMainThread {
             updateInMemory()
         } else {
-            DispatchQueue.main.async(execute: updateInMemory)
+            DispatchQueue.main.sync(execute: updateInMemory)
         }
 
         queue.async { [weak self] in
@@ -162,7 +176,6 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
             }
 
             DispatchQueue.main.async {
-                // Merge persisted records with any session records already logged
                 var combined = self.sessionRecords
                 for rec in loaded.reversed() {
                     if !combined.contains(where: { $0.id == rec.id }) {
@@ -186,7 +199,7 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
         if Thread.isMainThread {
             update()
         } else {
-            DispatchQueue.main.async(execute: update)
+            DispatchQueue.main.sync(execute: update)
         }
     }
 
@@ -200,7 +213,7 @@ public final class ParsingDiagnosticsLogger: ObservableObject, @unchecked Sendab
         if Thread.isMainThread {
             update()
         } else {
-            DispatchQueue.main.async(execute: update)
+            DispatchQueue.main.sync(execute: update)
         }
         queue.async { [weak self] in
             guard let self = self else { return }

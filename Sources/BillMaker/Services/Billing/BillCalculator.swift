@@ -3,7 +3,7 @@ import Foundation
 /// Core mathematical and business logic engine for calculating line-item costs, subtotals,
 /// unit conversions, metrics (weight in kg, item count), and cumulative live bill state merging.
 ///
-/// `BillCalculator` is shared by both local and LLM parsing workflows to ensure that all math,
+/// `BillCalculator` is shared across all billing workflows to ensure that all math,
 /// unit conversions, duplicate-item resolutions, and tax calculations are identical and accurate.
 public struct BillCalculator {
     /// Computes a single line-item (`BilledItem`) from an `AgentParsedItem`.
@@ -166,7 +166,6 @@ public struct BillCalculator {
 
             switch policy {
             case .createDuplicate:
-                // Default: Always add as duplicate separate row in bill
                 currentItems.append(newItem)
 
             case .addToQuantity:

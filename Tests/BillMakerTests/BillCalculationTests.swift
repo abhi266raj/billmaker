@@ -176,29 +176,31 @@ final class BillCalculationTests: XCTestCase {
     func testJSONPayloadDecoding() throws {
         let sampleJson = """
         {
-          "status": "ready",
           "message": "Added 2kg potato",
           "thought": "Matched potato from catalog",
-          "items": [
-            {
-              "itemId": "11111111-1111-1111-1111-111111111101",
-              "itemName": "Potato",
-              "matchedAlias": "aloo",
-              "quantity": 2.0,
-              "unit": "kg",
-              "unitPrice": 30.0
-            }
-          ]
+          "items": {
+            "verified": [
+              {
+                "id": "11111111-1111-1111-1111-111111111101",
+                "name": "Potato",
+                "quantity": 2.0,
+                "unit": "kg",
+                "unitPrice": 30.0
+              }
+            ],
+            "rejected": [],
+            "needClarification": []
+          }
         }
         """
 
         let data = sampleJson.data(using: .utf8)!
-        let payload = try JSONDecoder().decode(AgentJsonPayload.self, from: data)
+        let payload = try JSONDecoder().decode(BillingOutput.self, from: data)
 
-        XCTAssertEqual(payload.status, "ready")
-        XCTAssertEqual(payload.items?.count, 1)
-        XCTAssertEqual(payload.items?.first?.itemName, "Potato")
-        XCTAssertEqual(payload.items?.first?.quantity, 2.0)
+        XCTAssertEqual(payload.message, "Added 2kg potato")
+        XCTAssertEqual(payload.items.verified.count, 1)
+        XCTAssertEqual(payload.items.verified.first?.name, "Potato")
+        XCTAssertEqual(payload.items.verified.first?.quantity, 2.0)
     }
 
     @MainActor

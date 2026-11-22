@@ -152,13 +152,13 @@ public final class AppState: ObservableObject {
 
                 self.messages.append(response)
 
-                // Accumulate items into live bill & save undo snapshot
+                // Calculate bill strictly for current context & save undo snapshot
                 if let newItems = response.parsedItems, !newItems.isEmpty {
                     self.billHistory.append(self.currentBill)
                     self.canUndo = true
 
                     self.currentBill = BillCalculator.mergeIntoBill(
-                        existingBill: self.currentBill,
+                        existingBill: nil,
                         newParsedItems: newItems,
                         catalog: self.catalog,
                         currencySymbol: self.settings.currencySymbol,

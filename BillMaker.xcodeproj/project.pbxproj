@@ -7,45 +7,51 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0624EABE6809A27C1BD87DE4 /* ClarificationSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F950721B8788B0A1FEF6C60 /* ClarificationSpec.swift */; };
-		0664D6758C46D73E7F04633A /* BillingSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C3A6B4BC1744431D20F3AC /* BillingSpec.swift */; };
+		02BF9929B368B38827D2F102 /* BillingOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2D16FF914420B04E040F9F /* BillingOutput.swift */; };
+		06048985C545B3979F05EBF4 /* ReconciliationInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B7001DBD978ED2543922E28 /* ReconciliationInput.swift */; };
+		0AE02CBD601C4FACB0A8202C /* AgentAtomSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07BA41C1297DE6D11259BDE1 /* AgentAtomSession.swift */; };
 		0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2C0998AC37FFBA48B1DAEA /* AgentHarnessView.swift */; };
-		0DD48D2FAF970A77C17EB98A /* BillCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */; };
 		123234272817B8327A060678 /* Double+Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088F39DBF547A15E0DF857C8 /* Double+Formatting.swift */; };
 		1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BDD130FE59307D67B36033 /* AppState.swift */; };
+		1576A965AAFDB57DB55C91CE /* ReconciliationSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9736288BD80AD7CA732EDBD /* ReconciliationSpec.swift */; };
 		159154350904B05E08C5880E /* BillCalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */; };
+		15E839A8DB410D6A4CFFDDCC /* FindingItemOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA73C9374ADC6D116390C73 /* FindingItemOutput.swift */; };
 		4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749E18DECF5E3727D5EF7E49 /* AppSettings.swift */; };
 		500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F11597044C462B6F9622EB6 /* MainView.swift */; };
-		511712EA5808C5FE59D36147 /* ClarificationOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = C58F4CF0291672D9E81E8CA8 /* ClarificationOutput.swift */; };
 		554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */; };
 		5E5C83C032C3D52067631F91 /* LLMParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F747473FCA1F705CA295F25 /* LLMParsingTests.swift */; };
+		6420B1B9AEE13237EA2968EC /* ParsingPlanInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEAC90BB873B7CCB22063A93 /* ParsingPlanInput.swift */; };
 		64407F793284238483465BA8 /* Bill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D97D8C44B1BF3998FDFB75 /* Bill.swift */; };
 		6B8A772A9D922E0C8A98739C /* ChatMessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */; };
 		6D42F84712D20C507674CB7B /* DefaultCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */; };
-		702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */; };
 		70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */; };
 		75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */; };
 		7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31814D047DFD89075E97FF9D /* SettingsView.swift */; };
-		8023966E58A6813A635C7011 /* MasterBillingOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */; };
 		81C727B929DAB0BAA333E204 /* SpeechRecognitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */; };
-		966671B1B79B2116036BE7FE /* BillingOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E808182FA3E4C75A9E5FE28B /* BillingOutput.swift */; };
+		8B0A800EDE56FCEBBADE256D /* ParsingDiagnosticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD3CE77D3B3E3504DF13F2D9 /* ParsingDiagnosticsLogger.swift */; };
 		99939421974C70CA9EA3355F /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */; };
 		A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB52B5B1E55F4DFF67DF076D /* Item.swift */; };
 		A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB8D147938AD307524CEDADD /* ChatInputBar.swift */; };
+		A83E5A4B912F7ACFA473A2CD /* AgentAtomBillingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A3B50ADC7CFECB5778DCAC /* AgentAtomBillingEngine.swift */; };
 		ACE6B4331BE81F72483C6A8B /* AgentAtomSource in Frameworks */ = {isa = PBXBuildFile; productRef = 5072CD1B503CC5B4B038E1FC /* AgentAtomSource */; };
-		BFD64C9EEC8CB5D2EAECFB03 /* ClarificationInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19CD6D32BA6D012040A1754 /* ClarificationInput.swift */; };
+		B863FF288A5609163CDFECD8 /* ParsingPlanOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = E68A144D173412B12265F878 /* ParsingPlanOutput.swift */; };
+		BBF6A073297516E9217E7929 /* CatalogItemData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FC5EA5AF215F01A1D6B8C95 /* CatalogItemData.swift */; };
 		C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E3099402FD2BE17F77B6437 /* ReceiptService.swift */; };
 		C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */; };
-		C7C364D95D8AADCAD749C934 /* AgentAtomBillingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */; };
+		C78CC8A41AF6E64E8E84715A /* ReconciliationOutput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44AD96BE07C0CD01322D755E /* ReconciliationOutput.swift */; };
 		CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */; };
+		D106CC0B28B03263DFB90CEB /* FindingItemInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 159AAFA9145754FA64971A02 /* FindingItemInput.swift */; };
+		D1FF04FE5974D5D76264F363 /* ParsingPlanSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CEB25BFCB48366C40988F7 /* ParsingPlanSpec.swift */; };
 		D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5214870783E7496732F39D /* AgentMessage.swift */; };
+		D698B52A2D92BF7487D2390E /* QuantityValidity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 543F184D5EB646344F600F70 /* QuantityValidity.swift */; };
 		DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */; };
+		DD5E0A3DB039C1129D1D4CF5 /* FindingItemSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D73CC6C26A01CCF47E87FC0 /* FindingItemSpec.swift */; };
+		E672E0FBB4C08812975B3163 /* BillCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEEECFA02AEEA299834ED6AD /* BillCalculator.swift */; };
 		EA40491A041A462AD3A06D7E /* ParsingDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0171960EA96B11E40CC702 /* ParsingDiagnosticsView.swift */; };
 		EC6F666D4584A665FFC0A917 /* CatalogStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B1DD197103CD20566A36E /* CatalogStorageService.swift */; };
-		EF400A30FFB35616381F4736 /* BillingInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCFC840560DF3FCD27200680 /* BillingInput.swift */; };
 		F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */; };
-		FA638FC0B3459051637C4C52 /* ParsingDiagnosticsLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */; };
 		FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */; };
+		FD7AF439E61FC69D18BEEF06 /* FindingItemStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AC0D5225250ABDD826A40B /* FindingItemStatus.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,7 +65,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		07BA41C1297DE6D11259BDE1 /* AgentAtomSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAtomSession.swift; sourceTree = "<group>"; };
 		088F39DBF547A15E0DF857C8 /* Double+Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Double+Formatting.swift"; sourceTree = "<group>"; };
+		0FA73C9374ADC6D116390C73 /* FindingItemOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindingItemOutput.swift; sourceTree = "<group>"; };
+		159AAFA9145754FA64971A02 /* FindingItemInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindingItemInput.swift; sourceTree = "<group>"; };
 		1A00638E0BFDEBAF524106C0 /* BillCalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculationTests.swift; sourceTree = "<group>"; };
 		1C66681E8FC9EC43EA0243E7 /* DefaultCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DefaultCatalog.json; sourceTree = "<group>"; };
 		21D97D8C44B1BF3998FDFB75 /* Bill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bill.swift; sourceTree = "<group>"; };
@@ -68,37 +77,40 @@
 		31814D047DFD89075E97FF9D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptSuggestionBar.swift; sourceTree = "<group>"; };
 		3DB7E3724BB5399378E69518 /* InvoiceCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoiceCardComponents.swift; sourceTree = "<group>"; };
-		44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingDiagnosticsLogger.swift; sourceTree = "<group>"; };
+		44AD96BE07C0CD01322D755E /* ReconciliationOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconciliationOutput.swift; sourceTree = "<group>"; };
 		46EC0541A89D6DD89B36C5C5 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		4D5214870783E7496732F39D /* AgentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMessage.swift; sourceTree = "<group>"; };
-		664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAtomBillingEngine.swift; sourceTree = "<group>"; };
+		543F184D5EB646344F600F70 /* QuantityValidity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantityValidity.swift; sourceTree = "<group>"; };
+		5FC5EA5AF215F01A1D6B8C95 /* CatalogItemData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogItemData.swift; sourceTree = "<group>"; };
+		64A3B50ADC7CFECB5778DCAC /* AgentAtomBillingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentAtomBillingEngine.swift; sourceTree = "<group>"; };
 		6E3099402FD2BE17F77B6437 /* ReceiptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptService.swift; sourceTree = "<group>"; };
 		6F11597044C462B6F9622EB6 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		73BDD130FE59307D67B36033 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		749E18DECF5E3727D5EF7E49 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		7B7001DBD978ED2543922E28 /* ReconciliationInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconciliationInput.swift; sourceTree = "<group>"; };
 		7BEBCD30BBB09407488E18BA /* ItemEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEditorSheet.swift; sourceTree = "<group>"; };
-		7F950721B8788B0A1FEF6C60 /* ClarificationSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationSpec.swift; sourceTree = "<group>"; };
 		83A32C4678F51E65883098B5 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
-		88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterBillingOrchestrator.swift; sourceTree = "<group>"; };
-		8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
+		8D73CC6C26A01CCF47E87FC0 /* FindingItemSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindingItemSpec.swift; sourceTree = "<group>"; };
 		950E81DDF414840E2E4FEF56 /* ChatMessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessageBubble.swift; sourceTree = "<group>"; };
 		9A9411B5774CA7050BA1B5B5 /* BillMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BillMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentEngineProtocol.swift; sourceTree = "<group>"; };
-		B9C3A6B4BC1744431D20F3AC /* BillingSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingSpec.swift; sourceTree = "<group>"; };
-		BCFC840560DF3FCD27200680 /* BillingInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingInput.swift; sourceTree = "<group>"; };
-		C58F4CF0291672D9E81E8CA8 /* ClarificationOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationOutput.swift; sourceTree = "<group>"; };
+		B2CEB25BFCB48366C40988F7 /* ParsingPlanSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingPlanSpec.swift; sourceTree = "<group>"; };
+		BD2D16FF914420B04E040F9F /* BillingOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingOutput.swift; sourceTree = "<group>"; };
+		BD3CE77D3B3E3504DF13F2D9 /* ParsingDiagnosticsLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingDiagnosticsLogger.swift; sourceTree = "<group>"; };
+		C0AC0D5225250ABDD826A40B /* FindingItemStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindingItemStatus.swift; sourceTree = "<group>"; };
+		C9736288BD80AD7CA732EDBD /* ReconciliationSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconciliationSpec.swift; sourceTree = "<group>"; };
 		CC2630A9AD1A51E40B8D93E6 /* JSONInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONInspectorView.swift; sourceTree = "<group>"; };
 		CE2C0998AC37FFBA48B1DAEA /* AgentHarnessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentHarnessView.swift; sourceTree = "<group>"; };
-		D19CD6D32BA6D012040A1754 /* ClarificationInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarificationInput.swift; sourceTree = "<group>"; };
 		D752B35B09E7E37E62BAC281 /* SettingsStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStorageService.swift; sourceTree = "<group>"; };
 		DB8D147938AD307524CEDADD /* ChatInputBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInputBar.swift; sourceTree = "<group>"; };
 		E10EFF68FC3F002E7D31C172 /* BillMakerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillMakerApp.swift; sourceTree = "<group>"; };
 		E34B1DD197103CD20566A36E /* CatalogStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogStorageService.swift; sourceTree = "<group>"; };
-		E808182FA3E4C75A9E5FE28B /* BillingOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillingOutput.swift; sourceTree = "<group>"; };
+		E68A144D173412B12265F878 /* ParsingPlanOutput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingPlanOutput.swift; sourceTree = "<group>"; };
+		EEAC90BB873B7CCB22063A93 /* ParsingPlanInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParsingPlanInput.swift; sourceTree = "<group>"; };
 		F0885C6A88FA948CD6A1F689 /* LiveInvoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveInvoiceView.swift; sourceTree = "<group>"; };
 		F21B9C29F9491CCCC3561B57 /* BillMaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BillMaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F4C286EC9647290C705B21A5 /* SpeechRecognitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionTests.swift; sourceTree = "<group>"; };
 		FB52B5B1E55F4DFF67DF076D /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
+		FEEECFA02AEEA299834ED6AD /* BillCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BillCalculator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,15 +125,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		028265D2287CA28899033F9E /* Specs */ = {
-			isa = PBXGroup;
-			children = (
-				2B585BD805D190987C86F138 /* Billing */,
-				FA97ADDAD21B69925F3BB43B /* Clarification */,
-			);
-			path = Specs;
-			sourceTree = "<group>";
-		};
 		0360EA361E3C7487316FD692 /* Speech */ = {
 			isa = PBXGroup;
 			children = (
@@ -147,16 +150,6 @@
 			path = Printing;
 			sourceTree = "<group>";
 		};
-		2B585BD805D190987C86F138 /* Billing */ = {
-			isa = PBXGroup;
-			children = (
-				BCFC840560DF3FCD27200680 /* BillingInput.swift */,
-				E808182FA3E4C75A9E5FE28B /* BillingOutput.swift */,
-				B9C3A6B4BC1744431D20F3AC /* BillingSpec.swift */,
-			);
-			path = Billing;
-			sourceTree = "<group>";
-		};
 		3973F476DB8DAC3DB4480A19 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -177,15 +170,6 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		433137167FC0075268C4DA9C /* Engine */ = {
-			isa = PBXGroup;
-			children = (
-				B046F741753FE5B0A90B1A97 /* AI */,
-				EDEAF58972421603FF74B4B7 /* Harness */,
-			);
-			path = Engine;
-			sourceTree = "<group>";
-		};
 		440B17104532F1C890658E9A /* Harness */ = {
 			isa = PBXGroup;
 			children = (
@@ -202,6 +186,7 @@
 		4935A493C7B4754F0421065C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				9216C0062A152C848FB31CE1 /* Billing */,
 				2A6FF37EB16775D56553F913 /* Printing */,
 				0360EA361E3C7487316FD692 /* Speech */,
 				97528C85F2523D18614886D4 /* Storage */,
@@ -220,6 +205,16 @@
 			path = Tests/BillMakerTests;
 			sourceTree = "<group>";
 		};
+		4E9455E9079CF3F9CFDE6F6B /* Specs */ = {
+			isa = PBXGroup;
+			children = (
+				BB9574BBE7D933DEC33DFBB1 /* FindingItem */,
+				71C690FF84633959A8756774 /* Parsing */,
+				71A4DA327CEA78F6F97B8365 /* Reconciliation */,
+			);
+			path = Specs;
+			sourceTree = "<group>";
+		};
 		5330D04D273FA7EC1608F3A2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -229,11 +224,45 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		71A4DA327CEA78F6F97B8365 /* Reconciliation */ = {
+			isa = PBXGroup;
+			children = (
+				543F184D5EB646344F600F70 /* QuantityValidity.swift */,
+				7B7001DBD978ED2543922E28 /* ReconciliationInput.swift */,
+				44AD96BE07C0CD01322D755E /* ReconciliationOutput.swift */,
+				C9736288BD80AD7CA732EDBD /* ReconciliationSpec.swift */,
+			);
+			path = Reconciliation;
+			sourceTree = "<group>";
+		};
+		71C690FF84633959A8756774 /* Parsing */ = {
+			isa = PBXGroup;
+			children = (
+				EEAC90BB873B7CCB22063A93 /* ParsingPlanInput.swift */,
+				E68A144D173412B12265F878 /* ParsingPlanOutput.swift */,
+				B2CEB25BFCB48366C40988F7 /* ParsingPlanSpec.swift */,
+			);
+			path = Parsing;
+			sourceTree = "<group>";
+		};
+		7347D4E4E6986661B98E0ACB /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				64A3B50ADC7CFECB5778DCAC /* AgentAtomBillingEngine.swift */,
+				07BA41C1297DE6D11259BDE1 /* AgentAtomSession.swift */,
+				BD2D16FF914420B04E040F9F /* BillingOutput.swift */,
+				5FC5EA5AF215F01A1D6B8C95 /* CatalogItemData.swift */,
+				BD3CE77D3B3E3504DF13F2D9 /* ParsingDiagnosticsLogger.swift */,
+				4E9455E9079CF3F9CFDE6F6B /* Specs */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
 		751A51DB0EF62EF014BAF22A /* BillMaker */ = {
 			isa = PBXGroup;
 			children = (
+				7347D4E4E6986661B98E0ACB /* AI */,
 				E9CEE990C66E5DD5FFCC67E4 /* App */,
-				433137167FC0075268C4DA9C /* Engine */,
 				3973F476DB8DAC3DB4480A19 /* Models */,
 				3FEFE7BB4097880FFB574C69 /* Resources */,
 				4935A493C7B4754F0421065C /* Services */,
@@ -254,6 +283,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		9216C0062A152C848FB31CE1 /* Billing */ = {
+			isa = PBXGroup;
+			children = (
+				FEEECFA02AEEA299834ED6AD /* BillCalculator.swift */,
+			);
+			path = Billing;
+			sourceTree = "<group>";
+		};
 		97528C85F2523D18614886D4 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
@@ -271,23 +308,15 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		B046F741753FE5B0A90B1A97 /* AI */ = {
+		BB9574BBE7D933DEC33DFBB1 /* FindingItem */ = {
 			isa = PBXGroup;
 			children = (
-				664CE99C84F0F4379CB5B45B /* AgentAtomBillingEngine.swift */,
-				44E16DF21F1B562868C46000 /* ParsingDiagnosticsLogger.swift */,
-				D84681EF20011ABDFDCCD38A /* Orchestrator */,
-				028265D2287CA28899033F9E /* Specs */,
+				159AAFA9145754FA64971A02 /* FindingItemInput.swift */,
+				0FA73C9374ADC6D116390C73 /* FindingItemOutput.swift */,
+				8D73CC6C26A01CCF47E87FC0 /* FindingItemSpec.swift */,
+				C0AC0D5225250ABDD826A40B /* FindingItemStatus.swift */,
 			);
-			path = AI;
-			sourceTree = "<group>";
-		};
-		D84681EF20011ABDFDCCD38A /* Orchestrator */ = {
-			isa = PBXGroup;
-			children = (
-				88BD9EACD7B7C8927802D714 /* MasterBillingOrchestrator.swift */,
-			);
-			path = Orchestrator;
+			path = FindingItem;
 			sourceTree = "<group>";
 		};
 		DCB0C53DEFCBA18DB453D93C /* Catalog */ = {
@@ -308,15 +337,6 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		EDEAF58972421603FF74B4B7 /* Harness */ = {
-			isa = PBXGroup;
-			children = (
-				A3403281D9AC54001D8E8579 /* AgentEngineProtocol.swift */,
-				8C39792C9D5535D90FDDDBB2 /* BillCalculator.swift */,
-			);
-			path = Harness;
-			sourceTree = "<group>";
-		};
 		F6B6621A7009B7F437062A5F /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -325,16 +345,6 @@
 				3D15375B3C5FCBAB293C5A3F /* PromptSuggestionBar.swift */,
 			);
 			path = Components;
-			sourceTree = "<group>";
-		};
-		FA97ADDAD21B69925F3BB43B /* Clarification */ = {
-			isa = PBXGroup;
-			children = (
-				D19CD6D32BA6D012040A1754 /* ClarificationInput.swift */,
-				C58F4CF0291672D9E81E8CA8 /* ClarificationOutput.swift */,
-				7F950721B8788B0A1FEF6C60 /* ClarificationSpec.swift */,
-			);
-			path = Clarification;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -385,7 +395,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1600;
 			};
 			buildConfigurationList = 1D0DCC112DE2696CDF9B4CC8 /* Build configuration list for PBXProject "BillMaker" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -426,37 +436,43 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7C364D95D8AADCAD749C934 /* AgentAtomBillingEngine.swift in Sources */,
-				702F8CE2D81980A1BB1DB4EA /* AgentEngineProtocol.swift in Sources */,
+				A83E5A4B912F7ACFA473A2CD /* AgentAtomBillingEngine.swift in Sources */,
+				0AE02CBD601C4FACB0A8202C /* AgentAtomSession.swift in Sources */,
 				0D81079D1FC1F011518A6973 /* AgentHarnessView.swift in Sources */,
 				D5D81197FBE8F3A2E3B87D13 /* AgentMessage.swift in Sources */,
 				4E606374FC4BBD4E796A2BD2 /* AppSettings.swift in Sources */,
 				1503450F23D11C9A3B9243E3 /* AppState.swift in Sources */,
 				64407F793284238483465BA8 /* Bill.swift in Sources */,
-				0DD48D2FAF970A77C17EB98A /* BillCalculator.swift in Sources */,
+				E672E0FBB4C08812975B3163 /* BillCalculator.swift in Sources */,
 				CCE65BDD8B195F5E5D2976E8 /* BillMakerApp.swift in Sources */,
-				EF400A30FFB35616381F4736 /* BillingInput.swift in Sources */,
-				966671B1B79B2116036BE7FE /* BillingOutput.swift in Sources */,
-				0664D6758C46D73E7F04633A /* BillingSpec.swift in Sources */,
+				02BF9929B368B38827D2F102 /* BillingOutput.swift in Sources */,
+				BBF6A073297516E9217E7929 /* CatalogItemData.swift in Sources */,
 				EC6F666D4584A665FFC0A917 /* CatalogStorageService.swift in Sources */,
 				99939421974C70CA9EA3355F /* CatalogView.swift in Sources */,
 				A820D7DA4AA7FA6B01C4D9F0 /* ChatInputBar.swift in Sources */,
 				6B8A772A9D922E0C8A98739C /* ChatMessageBubble.swift in Sources */,
-				BFD64C9EEC8CB5D2EAECFB03 /* ClarificationInput.swift in Sources */,
-				511712EA5808C5FE59D36147 /* ClarificationOutput.swift in Sources */,
-				0624EABE6809A27C1BD87DE4 /* ClarificationSpec.swift in Sources */,
 				123234272817B8327A060678 /* Double+Formatting.swift in Sources */,
+				D106CC0B28B03263DFB90CEB /* FindingItemInput.swift in Sources */,
+				15E839A8DB410D6A4CFFDDCC /* FindingItemOutput.swift in Sources */,
+				DD5E0A3DB039C1129D1D4CF5 /* FindingItemSpec.swift in Sources */,
+				FD7AF439E61FC69D18BEEF06 /* FindingItemStatus.swift in Sources */,
 				75B5FFD40EF91680DE8055F3 /* InvoiceCardComponents.swift in Sources */,
 				A6C48E958AB5B042B0D42F4C /* Item.swift in Sources */,
 				554EC68E9553DE8508693013 /* ItemEditorSheet.swift in Sources */,
 				70787A53F07F0B84103E80A2 /* JSONInspectorView.swift in Sources */,
 				DA05DD37141069406F91E627 /* LiveInvoiceView.swift in Sources */,
 				500EFF70185A6AB05AA4E92F /* MainView.swift in Sources */,
-				8023966E58A6813A635C7011 /* MasterBillingOrchestrator.swift in Sources */,
-				FA638FC0B3459051637C4C52 /* ParsingDiagnosticsLogger.swift in Sources */,
+				8B0A800EDE56FCEBBADE256D /* ParsingDiagnosticsLogger.swift in Sources */,
 				EA40491A041A462AD3A06D7E /* ParsingDiagnosticsView.swift in Sources */,
+				6420B1B9AEE13237EA2968EC /* ParsingPlanInput.swift in Sources */,
+				B863FF288A5609163CDFECD8 /* ParsingPlanOutput.swift in Sources */,
+				D1FF04FE5974D5D76264F363 /* ParsingPlanSpec.swift in Sources */,
 				F3D21125D30ACEEB41AD8E5F /* PromptSuggestionBar.swift in Sources */,
+				D698B52A2D92BF7487D2390E /* QuantityValidity.swift in Sources */,
 				C08774E6CCE942CD0B90DB46 /* ReceiptService.swift in Sources */,
+				06048985C545B3979F05EBF4 /* ReconciliationInput.swift in Sources */,
+				C78CC8A41AF6E64E8E84715A /* ReconciliationOutput.swift in Sources */,
+				1576A965AAFDB57DB55C91CE /* ReconciliationSpec.swift in Sources */,
 				C6413042B8F7DCE2FD2408AC /* SettingsStorageService.swift in Sources */,
 				7F4AA602B6952F9013858AD9 /* SettingsView.swift in Sources */,
 				FB312255F0DD8F098A4B80DC /* SpeechRecognitionService.swift in Sources */,
@@ -488,14 +504,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.tests;
+				PRODUCT_MODULE_NAME = BillMakerTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
 			};
@@ -514,7 +534,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
 				SDKROOT = macosx;
 			};
@@ -566,7 +586,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = BillMaker;
@@ -581,14 +601,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.BillMakerTests;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.tests;
+				PRODUCT_MODULE_NAME = BillMakerTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BillMaker.app/Contents/MacOS/BillMaker";
 			};
@@ -607,7 +631,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.billmaker.app;
 				SDKROOT = macosx;
 			};
@@ -665,7 +689,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

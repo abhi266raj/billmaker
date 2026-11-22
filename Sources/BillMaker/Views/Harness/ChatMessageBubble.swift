@@ -332,11 +332,15 @@ public struct ChatMessageBubble: View {
                             .buttonStyle(.plain)
                             .help("Copy message result text to clipboard")
 
-                            if let json = message.rawJsonOutput, !json.isEmpty {
-                                Button(action: { onInspectJson(json) }) {
+                            let inspectText: String? = {
+                                if let raw = message.rawJsonOutput, !raw.isEmpty { return raw }
+                                return message.debugDescription
+                            }()
+                            if let textToInspect = inspectText {
+                                Button(action: { onInspectJson(textToInspect) }) {
                                     HStack(spacing: 4) {
-                                        Image(systemName: "curlybraces")
-                                        Text("View JSON")
+                                        Image(systemName: "ladybug")
+                                        Text("Debug Details")
                                     }
                                     .font(.caption2.weight(.medium))
                                     .padding(.horizontal, 8)
@@ -345,7 +349,7 @@ public struct ChatMessageBubble: View {
                                     .cornerRadius(6)
                                 }
                                 .buttonStyle(.plain)
-                                .help("Inspect extracted JSON payload sent to billing harness")
+                                .help("Inspect debug description and payload")
                             }
 
                             Text(message.timestamp.formatted(date: .omitted, time: .shortened))

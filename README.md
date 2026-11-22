@@ -1,61 +1,107 @@
-# BillMaker — Mac App with Local AI Agent & Item Catalog Harness
+# BillMaker — Native Mac App with Local AI Agent & Retail Grocery Billing
 
-**BillMaker** is a native macOS application designed for retail store billing and local AI agent experimentation. It features a dynamic **Item Catalog & Context Manager** (Page 1) and an intelligent **Local Mac Agent Harness** (Page 2) that translates natural human speech and orders into structured JSON and computes itemized bills in real-time.
+**BillMaker** is a native macOS application designed for retail store billing powered by local on-device AI. It features an **Item Catalog & Context Manager** (Page 1) and an intelligent **Local Mac Agent Harness** (Page 2) that translates natural human speech and conversational orders into structured JSON, reconciles items against store inventory, and computes itemized bills in real-time.
+
+---
+
+## 🏗️ Architecture & How It Works
+
+BillMaker runs an end-to-end **3-Stage Generic AI Pipeline** with zero hardcoded product dictionaries, zero local heuristic parsing fallbacks, and zero test simulation shortcuts. It runs on Apple Silicon using Apple Foundation Models (`/usr/bin/fm respond`) or native Apple Intelligence sessions.
+
+### Pipeline Flow
+
+```
+                      [Customer Audio or Text Input]
+                                     │
+                                     ▼
+        ┌────────────────────────────────────────────────────────┐
+        │  Stage 1: Multilingual Entity & Quantity Extractor     │
+        │  (ParsingPlanSpec)                                     │
+        │  • Inputs: userQuery, languages: ["Hindi", "English"]  │
+        │  • Transcribed speech & phonetic slips (aalu, sarso)   │
+        │  • Linguistic numerals (aadha=0.5, dedh=1.5, darjan=12)│
+        └────────────────────────────┬───────────────────────────┘
+                                     │ ExtractedOrderItem[]
+                                     ▼
+        ┌────────────────────────────────────────────────────────┐
+        │  Stage 2: Isolated Store Catalog Inventory Matcher     │
+        │  (SingleItemFindingSpec)                               │
+        │  • Item-by-item evaluation (prevents cross-talk)       │
+        │  • Transliteration & code-switching resolution         │
+        │  • Status: found (1 match) | duplicate | notFound      │
+        └────────────────────────────┬───────────────────────────┘
+                                     │ Matched Items
+                                     ▼
+        ┌────────────────────────────────────────────────────────┐
+        │  Stage 3: Packaging & Feasibility Auditor              │
+        │  (SingleItemReconciliationSpec)                        │
+        │  • Indivisible packet validation (e.g. 0.5 pkt Maggi)  │
+        │  • Subunit scaling (e.g. 500g @ ₹380/kg -> 0.5kg/₹190) │
+        │  • Verified quantity and unit price preservation       │
+        └────────────────────────────┬───────────────────────────┘
+                                     │
+                                     ▼
+                 [Live Calculated Invoice / Clarification]
+```
+
+### Stage 1: Multilingual Entity & Quantity Extractor (`ParsingPlanSpec`)
+- **Configurable Multilingual Input**: Accepts an array of languages (defaults to `["Hindi", "English"]`), dynamically informing the prompt without rigid language hardcoding.
+- **Audio & Phonetic Artifact Resilience**: Voice dictation and transcribed speech often introduce phonetic slips, transliteration variations, regional accents, and typos (e.g., *"aalu"* for potato, *"sarso"* for mustard, *"ande"* for eggs).
+- **Colloquial Numerals & Fractions**: Comprehends spoken fractions and regional quantity terms:
+  - *aadha* / half = `0.5`
+  - *pao* / quarter = `0.25`
+  - *paun* / three-quarters = `0.75`
+  - *sawa* = `1.25`
+  - *dedh* = `1.5`
+  - *dhai* = `2.5`
+  - *darjan* / dozen = `12 pcs` (unit: `"pc"`)
+- **Zero Item Hardcoding**: Generic extraction produces clean `[ExtractedOrderItem]` objects without assuming what is in the catalog.
+
+### Stage 2: Store Catalog Inventory Matcher (`SingleItemFindingSpec`)
+- **Isolated Item-by-Item Evaluation**: Small Language Models (SLMs) processing multi-item batches frequently suffer from cross-contamination, hallucinations, or dropping items. Evaluating candidate items item-by-item guarantees 100% item preservation.
+- **Three-Way Classification**:
+  - `found`: Exactly one unambiguous catalog match (e.g., *"sarso tel"* $\to$ *Mustard Oil*).
+  - `duplicate`: Ambiguous or umbrella category matches (e.g., *"1L tel"* matches both *Mustard Oil* and *Sunflower Oil*). Prompts the user with one-click clarification options.
+  - `notFound`: Requested item does not exist in the store catalog (e.g., *"surf excel"* when only groceries are stocked).
+
+### Stage 3: Packaging & Feasibility Auditor (`SingleItemReconciliationSpec`)
+- **Packaging Divisibility**: Distinguishes divisible loose items (`kg`, `litre`, `gram`, `ml`) from indivisible sealed packets or pieces (`packet`, `piece`, `can`, `box`).
+- **Indivisible Clarification**: Requesting a fractional quantity of an indivisible item (e.g., *"aadha packet maggi"*) halts automated addition and prompts for clarification.
+- **Subunit Conversion & Scaling**: Automatically reconciles customer requested subunits against catalog pricing base units:
+  - Customer asks for *"500g paneer"* against a catalog item priced at `₹380.00 / kg`.
+  - Reconciler scales quantity to `0.5 kg`, computing subtotal `0.5 * 380 = ₹190.00` rather than `500 * 380 = ₹190,000.00`.
+  - Millilitres are scaled to litres (`500 ml` $\to$ `0.5 L`).
+
+### Real-Time Diagnostics & Telemetry (`ParsingDiagnosticsLogger`)
+- Captures full telemetry for every turn: input query, raw prompt, Apple Foundation Models raw LLM response, parsed JSON, pipeline timings, and any syntax or schema errors.
+- Accessible directly from the macOS UI via **Parsing Diagnostics** inspector sheet.
 
 ---
 
 ## 🌟 Key Features
 
-### 1. Page 1: Item Catalog & Dynamic Context
+### 1. Item Catalog & Dynamic Context (Page 1)
 - **Inventory Management**: Add, edit, remove, and search items with live persistence (`UserDefaults`).
-- **Colloquial Aliases / Other Names**: Supports multiple colloquial, regional, and Hindi names for items (e.g. `Potato` with aliases `["Aloo", "Batata", "Aalu", "Potatoes"]`, `Cow Milk` with `["Doodh", "Dudh", "Milk"]`).
-- **Flexible Pricing Units**: Specify how each item is sold:
-  - Per Kilogram (`kg`)
-  - Per Gram (`gram` / `g`)
-  - Per Piece / Unit (`piece`)
-  - Per Packet (`packet`)
-  - Per Litre (`litre` / `L`)
-  - Per Millilitre (`ml`)
-  - Per Dozen (`dozen` / 12 pcs)
-- **Live Agent Context**: Any item or price change updated here is instantly available as context to the AI harness.
+- **Flexible Pricing Units**: Per kg, gram, piece, packet, litre, ml, or dozen.
+- **Live Agent Context**: Any item or price change updated in the catalog is instantly available to the AI harness.
 
-### 2. Page 2: Local Mac Agent Harness
-- **Natural Language Order Input**: Enter orders naturally in Hindi, Hinglish, or English:
-  - *"dedh kilo aalu aur 1L sarso tel"*
-  - *"500g paneer, 3 eggs, aur 1 pkt maggi"*
-  - *"dedh kilo aalu aur aadha kilo tamatar"*
-  - *"1 dozen kela aur 2kg seb"*
-- **Spelling Mistake Auto-Correction (Levenshtein Distance)**:
-  - Automatically identifies and repairs typos (e.g. *"potaoe"* → *Potato*, *"panir"* → *Paneer*, *"onoin"* → *Onion*, *"tamatr"* → *Tamatar*).
-  - Directly accepts corrected items into the live bill without blocking the customer.
-  - Explicitly states the auto-correction in the output response.
-  - Provides a 1-click **Undo** button in both the chat bubble and the invoice header to quickly revert if desired.
-- **Human-like To-and-Fro Clarification**:
-  - Kept to at most 1 concise sentence if strictly needed.
-  - Multi-item orders are never blocked by single ambiguities.
-- **Visible Thought Process**:
-  - The agent explicitly displays its step-by-step reasoning (scratchpad / chain of thought) inside a collapsible card before responding.
-- **Structured JSON Output**:
-  - The AI formats its internal findings into clean JSON containing item IDs, matched aliases, normalized quantities, units, and unit prices.
-  - Users can view and copy the raw JSON via the built-in **JSON Inspector**.
+### 2. Local Mac Agent Harness (Page 2)
+- **Natural Language Order Input**: Seamlessly mix English, Hindi, and Hinglish.
+- **Conversational Clarification**: When umbrella terms are detected (e.g., *"oil"*), offers instant interactive option chips.
+- **Visible Chain of Thought**: Displays model reasoning inside a collapsible card before the response.
+- **Structured JSON Inspector**: View and copy raw JSON payloads of verified items, rejections, and clarifications.
 
 ### 3. Real-Time Billing & Invoice Harness
-- **Live & Cumulative**: Items accumulate continuously until reset via the UX **"Reset Bill"** button.
-- **Duplicate Item Policy**: Choose between **"Add to Quantity"** (e.g., 1kg + 1kg = 2kg) or **"Replace Quantity"** when an item is re-entered.
-- **1-Click Undo**: Revert any accidental addition or auto-correction back to the previous bill state.
-- Computes:
-  - Subtotal per item
-  - Total items count
-  - Total weight in Kilograms (e.g., `2.00 kg`)
-  - Total pieces
-  - Tax (configurable percentage) & Grand Total
-- Features **Print Invoice** (native macOS print sheet) and **Copy Receipt to Clipboard**.
+- **Live & Cumulative Accumulation**: Items accumulate continuously until reset via the **"Reset Bill"** button.
+- **Configurable Duplicate Item Policy**: "Add to Quantity" or "Replace Quantity".
+- **1-Click Conversational Undo**: Revert accidental additions instantly.
+- **Computed Invoice**: Subtotals, total items, total weight in kg, total pieces, tax, and grand total.
+- **Native Print & Clipboard**: Printable receipt format sheet and one-click clipboard copy.
 
 ### 4. Apple Foundation Models Engine & Zero External Dependencies
-- **100% On-Device Apple Foundation Models**: Powered natively by macOS Apple Intelligence (`FoundationModels` framework, `SystemLanguageModel`, and `LanguageModelSession`).
-- **No External Servers or API Keys**: Zero dependencies on Ollama, Python, or external cloud servers. Executes privately and rapidly on Apple Silicon.
-- **Continuous Voice Dictation**: Integrated Apple Speech Recognition (`SFSpeechRecognizer`) supporting English (India/Hinglish), Hindi (`hi-IN`), US English, and UK English.
-- **Xcode & VS Code Ready**: Open with `BillMaker.xcworkspace`, `BillMaker.xcodeproj`, or `BillMaker.code-workspace`.
+- **100% On-Device**: Powered natively by macOS Apple Intelligence (`/usr/bin/fm respond`).
+- **Zero External Servers**: No Ollama, Python servers, Docker containers, or cloud API keys required.
+- **Continuous Voice Dictation**: Apple Speech Recognition (`SFSpeechRecognizer`) supporting English (India/Hinglish), Hindi (`hi-IN`), US English, and UK English.
 
 ---
 
@@ -63,73 +109,91 @@
 
 ```
 billmaker/
-├── BillMaker.xcodeproj             # Xcode Project (open with Xcode)
-├── project.yml                     # XcodeGen configuration
-├── Package.swift                   # Swift Package Manager (for VS Code & CLI)
-├── .vscode/
-│   ├── tasks.json                  # VS Code build, test, and run tasks
-│   ├── launch.json                 # VS Code LLDB debug launcher
-│   └── settings.json               # VS Code Swift settings
+├── BillMaker.xcodeproj                         # Xcode Project
+├── project.yml                                 # XcodeGen specification
+├── Package.swift                               # Swift Package Manager manifest
 ├── Sources/
 │   └── BillMaker/
 │       ├── App/
-│       │   ├── BillMakerApp.swift  # App entry point
-│       │   └── AppState.swift      # Global observable state & persistence
+│       │   ├── BillMakerApp.swift              # App entry point
+│       │   └── AppState.swift                  # Observable app state & bill lifecycle
+│       ├── AI/
+│       │   ├── AgentAtomBillingEngine.swift    # 3-Stage pipeline orchestrator
+│       │   ├── AgentAtomSession.swift          # /usr/bin/fm respond runner
+│       │   ├── BillingOutput.swift             # JSON & thought extractor
+│       │   ├── CatalogItemData.swift           # Codable catalog projection
+│       │   ├── ParsingDiagnosticsLogger.swift  # Turn-by-turn telemetry logger
+│       │   └── Specs/                          # Spec inputs, outputs, instructions
+│       │       ├── Parsing/
+│       │       │   ├── ParsingPlanInput.swift  # Query & languages array
+│       │       │   ├── ParsingPlanSpec.swift   # Generic entity extraction spec
+│       │       │   └── ParsingPlanOutput.swift # Resilient Codable output
+│       │       ├── FindingItem/
+│       │       │   ├── FindingItemInput.swift  # Extracted items + catalog
+│       │       │   ├── FindingItemSpec.swift   # Single-item catalog matcher
+│       │       │   ├── FindingItemStatus.swift # found | duplicate | notFound
+│       │       │   └── FindingItemOutput.swift # Matched catalog items
+│       │       └── Reconciliation/
+│       │           ├── ReconciliationInput.swift
+│       │           ├── ReconciliationSpec.swift# Single-item feasibility auditor
+│       │           ├── QuantityValidity.swift  # valid | invalid | requiresClarification
+│       │           └── ReconciliationOutput.swift
 │       ├── Models/
-│       │   ├── Item.swift          # Item definition, unit types, aliases
-│       │   ├── Bill.swift          # BilledItem & BillSummary with weight
-│       │   ├── AgentMessage.swift  # Messages, thoughts, and JSON schema
-│       │   └── AppSettings.swift   # Engine selection & preferences
-│       ├── Engine/
-│       │   ├── AgentEngineProtocol.swift
-│       │   ├── NativeSwiftAgentEngine.swift # Built-in intelligent Swift engine
-│       │   ├── LocalLLMAgentEngine.swift    # Ollama / LM Studio connector
-│       │   └── BillCalculator.swift         # Calculates subtotals, weight, totals
+│       │   ├── Item.swift                      # Catalog item definition
+│       │   ├── Bill.swift                      # BilledItem & BillSummary
+│       │   ├── AgentMessage.swift              # Messages & chat state
+│       │   └── AppSettings.swift               # Preferences & voice settings
+│       ├── Services/
+│       │   ├── Billing/
+│       │   │   └── BillCalculator.swift        # Subunits, taxes, and totals
+│       │   ├── Printing/
+│       │   │   └── ReceiptService.swift        # Native macOS print formatter
+│       │   ├── Speech/
+│       │   │   └── SpeechRecognitionService.swift # Apple SFSpeechRecognizer
+│       │   └── Storage/
+│       │       ├── CatalogStorageService.swift
+│       │       └── SettingsStorageService.swift
 │       ├── Views/
-│       │   ├── MainView.swift               # NavigationSplitView sidebar
-│       │   ├── Catalog/
-│       │   │   ├── CatalogView.swift        # Table, search, filters
-│       │   │   └── ItemEditorSheet.swift    # Add / edit modal
-│       │   ├── Harness/
-│       │   │   ├── AgentHarnessView.swift   # Conversational harness & prompt chips
-│       │   │   ├── ChatMessageBubble.swift  # Bubble with thought process & JSON view
-│       │   │   ├── LiveInvoiceView.swift    # Real-time calculated bill receipt
-│       │   │   └── JSONInspectorView.swift  # JSON inspection sheet
-│       │   └── Settings/
-│       │       └── SettingsView.swift       # Preferences & local LLM URL
+│       │   ├── MainView.swift                  # NavigationSplitView sidebar
+│       │   ├── Catalog/                        # Inventory management sheets
+│       │   └── Harness/                        # Chat, invoice, diagnostics views
 │       └── Resources/
-│           ├── DefaultCatalog.json          # Pre-loaded grocery catalog
+│           ├── DefaultCatalog.json             # Pre-loaded grocery catalog
 │           └── Info.plist
 └── Tests/
     └── BillMakerTests/
-        └── BillCalculationTests.swift       # Unit test suite
+        ├── BillCalculationTests.swift          # Unit tests (subunits, tax, undo)
+        ├── SpeechRecognitionTests.swift        # Voice settings & audio configs
+        └── LLMParsingTests.swift               # Live Apple Foundation Model tests
 ```
 
 ---
 
-## 🚀 How to Run
+## 🚀 How to Run & Verify
 
-### Option 1: Open in Xcode (`BillMaker.xcodeproj`)
-1. Open the project in Xcode:
+### Option 1: Open in Xcode
+1. Open the project:
    ```bash
    open BillMaker.xcodeproj
    ```
 2. Select target **BillMaker** and press `Cmd + R` (Run).
 
-### Option 2: Run via Terminal / VS Code
+### Option 2: Command Line (SPM)
 - **Build**:
   ```bash
   swift build
   ```
-- **Run**:
+- **Run Unit Tests**:
   ```bash
-  swift run BillMaker
+  swift test --filter BillCalculationTests
+  swift test --filter SpeechRecognitionTests
   ```
-- **Run Tests**:
+- **Run Live Apple Foundation Model Tests**:
   ```bash
-  swift test
+  swift test --filter LLMParsingTests/testThreeStepPipeline
+  swift test --filter LLMParsingTests/testEggCatalogLookupAndQuantityVariations
   ```
 - **Build with xcodebuild**:
   ```bash
-  xcodebuild -project BillMaker.xcodeproj -scheme BillMaker -configuration Debug build
+  xcodebuild -scheme BillMakerTests -destination 'platform=macOS' test -only-testing:BillMakerTests/BillCalculationTests
   ```
